@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="zh"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>PKCS#7结构分析之签名 - 大宝自习室</title>
+  <meta name="author" content="hbaojun">
+  <meta name="baidu-site-verification" content="IlnJjhdGXL" />
+  <meta name="description" content="学习分析PKCS#7数据组织结构，并且用C语言通过ASN.1将数据打包成PKCS#7格式">
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="OpooPressSiteRoot" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="Generator" content="OpooPress-1.1.1"/>
+  <meta name="Generated" content="2015-02-18T15:16:52+08:00"/>
+  <link rel="canonical" href="/2014/02/18/PKCS7结构分析之签名/">
+  
+  
+  <link href="/favicon.ico" rel="icon">
+  <link href="/atom.xml" rel="alternate" title="大宝自习室" type="application/atom+xml">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+  <link href="//fonts.useso.com/css?family=PT+Serif:regular,italic,bold,bolditalic|PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+  <link type="text/css" rel="stylesheet" href="/plugins/syntax-highlighter/styles/shCoreDefault.css"/>
+  <!--[if lt IE 9]><script src="/javascripts/html5shiv.js"></script><![endif]-->
+</head>
+<body>
+  <!--[if lt IE 9]><script src="/javascripts/unsupported-browser.js"></script><![endif]-->
+  <header role="banner"><hgroup>
+  <h1><a href="/">大宝自习室</a></h1>
+    <h2>道路就在脚下</h2>
+</hgroup>
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+</ul>
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:http://hbaojun.eu.org" />
+    <input class="search" type="text" name="q" results="0" placeholder="搜索"/>
+  </fieldset>
+</form>
+
+<fieldset class="mobile-nav">
+  <select onchange="if (this.value) { window.location.href = this.value;}">
+    <option value="">导航&hellip;</option>
+    <option value="/">&raquo; 文章</option>
+    <option value="/archives/">&raquo; 归档</option>
+    <option value="/about/">&raquo; 关于</option>
+  </select>
+</fieldset>
+
+<ul class="main-navigation">
+<li><a href="/">文章</a></li>
+<li><a href="/archives/">归档</a></li>
+<li><a href="/about/">关于</a></li>
+</ul>
+</nav>
+  <div id="main">
+    <div id="content">
+<div>
+<article class="hentry" role="article">
+  <header>
+      <h1 class="entry-title">PKCS#7结构分析之签名</h1>
+
+      <p class="meta">
+		
+
+
+<time datetime="2014-02-18T08:00:00+08:00" pubdate>2014年02月18日</time>
+         | <a href="#ds-thread">评论</a>
+      </p>
+  </header>
+
+  <div class="entry-content"><h3>PKCS#7简单介绍</h3>
+<p>PKCS#7,又称作加密消息语法标准，是RSA实验室制定的交换消息的一种标准。从RFC 2315文档中知道，PKCS#7一般结构包括两个部分，这两部分结构可以足够支持多种内容类型，文档中定义了6中类型，在稍后会写到。</p>
+<!--more-->
+<h3>PKCS#7结构</h3>
+<p>PKCS#7一般ASN.1结构描述：</p>
+<pre class='brush:c'>ContentInfo ::= SEQUENCE {
+    contentType ContentType,
+    content  [0] EXPLICIT ANY DEFINED BY contentType OPTIONAL 
+}
+</pre><p>类型解释：</p>
+<h4>ContentType</h4>
+<pre class='brush:c'>ContentType ::= OBJECT IDENTIFIER
+</pre><p>ContentType标示了content的类型，经过ASN.1编码的类型是OBJECT IDENTIFIER,是唯一的整数串来标示。6种content类型，分别为：data, signedData, envelopedData, signedAndEnvelopedData, digestData 和encryptedData.
+6中数据类型的标识如下定义:</p>
+<pre class='brush:c'>pkcs-7 OBJECT IDENTIFIER ::=
+     { iso(1) member-body(2) US(840) rsadsi(113549) pkcs(1) 7 }
+</pre><p>有下列定义:<br  /></p>
+<pre class='brush:c'>   data OBJECT IDENTIFIER ::= { pkcs-7 1 }
+   signedData OBJECT IDENTIFIER ::= { pkcs-7 2 }
+   envelopedData OBJECT IDENTIFIER ::= { pkcs-7 3 }
+   signedAndEnvelopedData OBJECT IDENTIFIER ::= { pkcs-7 4 }
+   digestedData OBJECT IDENTIFIER ::= { pkcs-7 5 }
+   encryptedData OBJECT IDENTIFIER ::= { pkcs-7 6 }
+</pre><p>根据上面的描述，很容易就查到6种类型的OBJECT IDENTIFIER的具体数值。
+SignedData 的OBJECT IDENTIFIER为"1.2.840.113549.1.7.2&rdquo;</p>
+<p>下面的简单介绍一下content 6中类型的内容编码方式。</p>
+<ol>
+<li><h4>Data</h4>
+<pre class='brush:c'>Data :: = OCTET STRING
+</pre><em>data</em>类型代表任意的8位字符串，比如ASCII字符串。该字符串不需要任何内部结构，但是有可能他们已经是经过编码(DER)后的字符串。<br  /></li>
+<li><em>Signed-data</em><br  />
+sign-data内容类型包括任何类型的数据和0个或者更多的签名者对内容的签名值。内容的任何类型都能够被多个签名者同时类似的签名。当然也有退化的情形，就像没有签名者，这种情况就是提供证书和CRL的分发。</li>
+</ol>
+<pre class='brush:c'>SignedData ::= SEQUENCE {
+    version Version,
+    digestAlgorithms DigestAlgorithmIdentifiers,
+    contentInfo ContentInfo,
+    certificates [0] IMPLICIT ExtendedCertificatesAndCertificates OPTIONAL,
+    crls [1] IMPLICIT CertificateRevocationLists OPTIONAL,
+    signerInfos SignerInfos 
+}
+</pre><p>其中具体项分析
+<strong>Version</strong><br  /></p>
+<pre class='brush:c'>version Version
+</pre><p><em>Version</em>的编码为Integer,一般设为1;<br  /></p>
+<pre class='brush:c'>DigestAlgorithmIdentifiers ::= SET OF DigestAlgorithmIdentifier
+</pre><p><em>DigestAlgorithmIdentifiers</em>是SET结构，分别对应了如果有多个Signers是他们分别的摘要算法标识符或者0个。如果算法中需要某些参数，这其中还应该包含对应的参数。这个集合不存在顺序(SET),但是利于签名验证的一次性就通过。<br  />
+<strong>ContentInfo</strong><br  />
+<em>ContentInfo</em>就是签名的内容。它能够包含任何定义的内容类型。<br  />
+<strong>certificates</strong><br  />
+<em>certificates</em>是PKCS#6扩展的证书和X.509证书格式。它的目的是满足从根证书或者上层证书到签名者证书的链式结构。<br  />
+<strong>crls</strong><br  />
+<em>crls</em>是CRL列表的集合。它的目的是用来决定这些证书是否在这些CRL列表中，但是这些相应的可能不是必须。有可能有比必须的CRL列表要多，也有可能要少。<br  />
+<strong>SignerInfos</strong><br  />
+<em>signerInfos</em>是每个签名者信息的一个集合。有可能有任何数量的签名者信息，包括0.<br  />
+<strong>Note</strong><br  />
+1.<em>digestAlgorithms</em>域在<em>contentInfo</em>域前并且<em>signerInfo</em>域在<em>digestAlgorithm</em>域后的安排是为了让它能够一次性的处理<em>SignedData</em>生成PKCS#7结构。<br  />
+2.Version = 1和Version = 0之间的差别主要在digestAlogrithm，signerInfos和crls域。新版本允许前两个域可以包含0个元素，crls域不包含在就版本中。<br  />
+3.在退化的情况，若没有签名者在content中，则在contentInfo中的"signed"的值就是不相关的。在这种情况下推荐contentInfo中的content type的值为"signed"值，其中的content中域的值就省略了。<br  />
+下面的结构式<strong>SignerInfo</strong>，包含每个签名者的具体信息。</p>
+<pre class='brush:c'>SignerInfo ::= SEQUENCE {
+    version Version,
+    issuerAndSerialNumber IssuerAndSerialNumber,
+    digestAlgorithm DigestAlgorithmIdentifier,
+    authenticatedAttributes    [0] IMPLICIT Attributes OPTIONAL,
+    digestEncryptionAlgorithm  DigestEncryptionAlgorithmIdentifier,
+    encryptedDigest            EncryptedDigest, 
+    unauthenticatedAttributes  [1] IMPLICIT Attributes OPTIONAL 
+}
+</pre><p><strong>version</strong><br  />
+version的值为1，整数编码。<br  />
+<strong>IssuerAndSerialNumber</strong><br  />
+<em>issuerAndSerialNumber</em>就指定了签名者用来签名的数字证书，其中包括签名者唯一区别名和特定的证书序列号。<br  />
+<strong>DigestAlgorithm identifies</strong><br  />
+<em>digestAlgorithm identifies</em>用来标识对消息进行摘要的算法和必要的参数(可选)，<br  />
+<strong>AuthenticatedAttributes</strong><br  />
+<em>authenticatedAttributes</em>是被签名者签名或者认证过的属性集合。这个域是可选的，但是当<em>ContentInfo</em>中content type的不是data类型时，必须包含，而且至少需要2中属性:
+1.<em>PKCS#9 content-type</em>属性；<br  />
+2.<em>PKCS#9 messsage-digest</em>属性；<br  />
+其他类型的属性在这里也可能有用，像signing time(也定义在PKCS#9)。<br  />
+<strong>DigestEncryptionAlgorithm</strong>
+<strong>digestEncryptionAlgorithm</strong> 标识着摘要加密的算法和相关的参数等。<br  />
+<strong>EncryptedDigest</strong>
+<em>encryptedDigest</em>就是用签名者的私钥签名摘要后的结果值。<br  />
+<strong>UnauthenticatedAttributes</strong>
+<em>unauthenticatedAttributes</em>是没有被签名或者认证的属性集，并且是可选的。属性类型有些可能会很有用处，像<em>countersignatures</em>(定义在PKCS#9)。<br  /></p>
+<p><strong>Note:</strong><br  />
+1.为了跟PEM的兼容性，推荐ContentInfo中content type的值被签名的是数据，并且没有认证的属性。
+2.只生成Version为1的p7.<br  /></p>
+<p><strong>摘要处理过程</strong><br  />
+摘要处理过程是处理将被签名的content或者这个content和签名者认证过得属性。在这两种情况，开始都是对将被签名的content进行摘要处理。特别是开始输入的是ContentInfo经过DER编码后的值域范围的8位字节数据。只有这些数据的内容被计算摘要，8位字节标识和其长度都不包括在内。<br  />
+消息摘要处理的结果取决于是否有authenticatedAttributes这项。若没有这项，就只对ContentInfo处理；当这项曾在时，消息摘要的计算范围包括所有认证后的属性的DER编码值(IMPLICIT[0]这个标签不包含在内，&ldquo;SET OF"的标签包含在内,并且包括长度和编码后的内容).由于有属性值，当这个域曾在时</p>
+<p><strong>摘要加密处理</strong><br  />
+摘要的ASN.1描述:<br  /></p>
+<pre class='brush:c'>DigestInfo ::= SEQUENCE {
+    digestAlgorithm DigestAlgorithmIdentifier,
+    digest Digest 
+}
+Digest ::= OCTET STRING
+</pre><p>digestAlgorithm标识用来计算内容和鉴别属性的摘要的消息摘要算法（和相应的参数）。它应该和SignerInfo的digestAlgorithm域有同样的值。<br  />
+digest是消息摘要处理的结果。<br  />
+1.这里签名过程和PKCS＃1中定义的签名算法的唯一不同在于PKCS＃1中的签名用比特串表示(为了和X509的SIGNED宏一致)，这里加密的消息摘要用字节串表示。<br  />
+2.加密处理的输入通常有30个或更少字节。如果digestEncryptionAlgorithm是PKCS #1的rsaEncryption,则表示输入能够在一个单块中加密，并且只要RSA模块的长度至少有328比特，这是合理的并且和安全建议相一致。<br  />
+3.消息摘要算法标识符包含在DigestInfo值中，这种情况杜绝了攻击者利用其他弱摘要算法了替代计算摘要的算法来逆向计算，伪造另外的消息来匹配该摘要值。如果指定了算法标识，这种攻击显然不成立了。<br  />
+4.由于DigestInfo值中并没有指示digest域是否仅包含内容的消息摘要或是有authenticatedAttributes的完全DER编码的消息摘要，故存在一个潜在的含糊的地方。就是说，攻击有可能把包括鉴别属性上的签名转换成只在内容上的签名，通过改变将要DER编码的内容进而去掉authenticatedAttributes值。<br  />
+<strong>PEM兼容性</strong><br  />
+如果待签名的ContentInfo的content type值是data类型，没有鉴别属性，消息摘要算法是md2或md5并且摘要加密算法是PKCS＃1的rsaEncryption时，其与PEM的MIC-ONLY 和MIC-CLEAR处理类型兼容。<br  /></p>
+</div>
+  <footer>
+    <p class="meta">
+      <div style="font-size:80%">
+<div>
+<div align="center">希望本站内容对您有点用处,有什么疑问或建议请在后面留言评论</div>
+<div style="text-indent:2em;">若无特别注明，本站内容均属原创,转载请注明作者(<a href="http://hbaojun.eu.org">hbaojun</a>)和出处 <a href="http://hbaojun.eu.org/2014/02/18/PKCS7结构分析之签名/">大宝自习室</a> ，请勿用于任何商业用途。</div>
+<div style="text-indent:2em;">本文链接: <a href="http://hbaojun.eu.org/2014/02/18/PKCS7结构分析之签名/">http://hbaojun.eu.org/2014/02/18/PKCS7结构分析之签名/</a></div>
+</div><span class="byline author vcard">作者 <span class="fn">hbaojun</span></span>      
+
+
+<time datetime="2014-02-18T08:00:00+08:00" pubdate>2014年02月18日</time>
+      
+<span class="categories">属于 <a class="category" href="/category/pkcs7/">PKCS#7</a>
+ 分类</span>
+
+
+<span class="categories">被贴了 <a class="tag" href="/tag/pkcs7/">PKCS#7</a>, <a class="tag" href="/tag/xin-xi-an-quan/">信息安全</a>
+ 标签</span>
+</div>
+    </p>
+<div class="sharing">
+      <div class="bdsharebuttonbox"><a href="#" class="bds_more" data-cmd="more"></a><a title="分享到QQ空间" href="#" class="bds_qzone" data-cmd="qzone"></a><a title="分享到新浪微博" href="#" class="bds_tsina" data-cmd="tsina"></a><a title="分享到腾讯微博" href="#" class="bds_tqq" data-cmd="tqq"></a><a title="分享到人人网" href="#" class="bds_renren" data-cmd="renren"></a><a title="分享到微信" href="#" class="bds_weixin" data-cmd="weixin"></a></div>
+    <script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"16"},"share":{},"image":{"viewList":["qzone","tsina","tqq","renren","weixin"],"viewText":"分享到：","viewSize":"16"}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];</script>
+</div>
+<p>
+  <h2>相关文章</h2>
+  <ul id="related-posts-list">
+      <li class="post">
+        <a href="/2014/02/19/PKCS7结构分析之数字信封/">PKCS#7结构分析之数字信封</a>
+        <div class="source right"><time datetime="2014-02-19T12:00:00">2014-02-19</time></div>
+      </li>
+      <li class="post">
+        <a href="/2014/02/28/SSL与TLS协议/">SSL与TLS协议</a>
+        <div class="source right"><time datetime="2014-02-28T08:00:00">2014-02-28</time></div>
+      </li>
+      <li class="post">
+        <a href="/2014/03/02/Certificate/">数字证书</a>
+        <div class="source right"><time datetime="2014-03-02T08:00:00">2014-03-02</time></div>
+      </li>
+      <li class="post">
+        <a href="/2014/01/15/JavaCard简介/">JavaCard 简介</a>
+        <div class="source right"><time datetime="2014-01-15T12:00:00">2014-01-15</time></div>
+      </li>
+      <li class="post">
+        <a href="/2013/05/08/PKCS12结构-1/">PKCS12结构-1</a>
+        <div class="source right"><time datetime="2013-05-08T08:00:00">2013-05-08</time></div>
+      </li>
+  </ul>
+</p>    <p class="meta">
+        <a class="basic-alignment left" href="/2014/01/21/CAP之类组件/" title="上一篇: CAP文件之类组件分析">&laquo; CAP文件之类组件分析</a>
+        <a class="basic-alignment right" href="/2014/02/19/PKCS7结构分析之数字信封/" title="下一篇: PKCS#7结构分析之数字信封">PKCS#7结构分析之数字信封 &raquo;</a>
+    </p>
+  </footer>
+</article>
+  <section>
+    <h1>评论</h1>
+    <div id="ds-thread" class="ds-thread" data-thread-key="/2014/02/18/PKCS7结构分析之签名/" data-title="PKCS#7结构分析之签名"></div>
+  </section>
+</div>
+<aside class="sidebar">
+
+<section>
+  <h1>分类</h1>
+  <ul id="categories">
+	<li class="category"><a href="/category/xin-xi-an-quan/">信息安全</a><span class="count right">8</span>
+	</li>
+	<li class="category"><a href="/category/linux/">Linux</a><span class="count right">19</span>
+	</li>
+	<li class="category"><a href="/category/xue-xi/">学习</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/gong-zuo/">工作</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/ming-ling-xing/">命令行</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/sheng-huo/">生活</a><span class="count right">6</span>
+	</li>
+	<li class="category"><a href="/category/python/">python</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/c/c/">C/C++</a><span class="count right">4</span>
+	</li>
+	<li class="category"><a href="/category/gui/">GUI</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/tu-xing-jie-mian/">图形界面</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/jekyll/">Jekyll</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/pkcs7/">PKCS#7</a><span class="count right">2</span>
+	</li>
+	<li class="category"><a href="/category/java/">Java</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/javacard/">JavaCard</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/she-ji-mo-shi/">设计模式</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/bian-ma/">编码</a><span class="count right">1</span>
+	</li>
+  </ul>
+</section>
+<section>
+  <h1>近期文章</h1>
+  <ul id="recent_posts">
+  
+  
+      <li class="post">
+        <a href="/2015/01/09/2015-1-9-google-chrome-install/">Kali安装google Chrome</a>
+      </li>
+      <li class="post">
+        <a href="/2015/01/09/2015-1-9-Kali-install-pick/">Kali安装小记</a>
+      </li>
+      <li class="post">
+        <a href="/2015/01/08/2015-1-8-xterm-font-pick/">Kali中xterm字体设置</a>
+      </li>
+      <li class="post">
+        <a href="/2014/12/27/learn-bash-program/">Shell学习笔记</a>
+      </li>
+      <li class="post">
+        <a href="/2014/08/07/config-file-of-samba/">Samba配置文件</a>
+      </li>
+  </ul>
+</section>
+<section>
+  <h1>标签</h1>
+  <ul id="tags">
+	<li class="tag"><span><a href="/tag/linux/">Linux</a></span><span class="count">12</span></li>
+	<li class="tag"><span><a href="/tag/xin-xi-an-quan/">信息安全</a></span><span class="count">10</span></li>
+	<li class="tag"><span><a href="/tag/ssl/">SSL</a></span><span class="count">5</span></li>
+	<li class="tag"><span><a href="/tag/tls/">TLS</a></span><span class="count">5</span></li>
+	<li class="tag"><span><a href="/tag/sheng-huo/">生活</a></span><span class="count">4</span></li>
+	<li class="tag"><span><a href="/tag/java/">Java</a></span><span class="count">4</span></li>
+	<li class="tag"><span><a href="/tag/gnu/">GNU</a></span><span class="count">4</span></li>
+	<li class="tag"><span><a href="/tag/kali/">Kali</a></span><span class="count">3</span></li>
+	<li class="tag"><span><a href="/tag/pei-zhi/">配置</a></span><span class="count">3</span></li>
+	<li class="tag"><span><a href="/tag/za-cou-han-shu/">杂凑函数</a></span><span class="count">3</span></li>
+	<li class="tag"><span><a href="/tag/wang-luo-an-quan/">网络安全</a></span><span class="count">3</span></li>
+	<li class="tag"><span><a href="/tag/samba/">Samba</a></span><span class="count">3</span></li>
+	<li class="tag"><span><a href="/tag/xue-jia/">学驾</a></span><span class="count">2</span></li>
+	<li class="tag"><span><a href="/tag/java-card/">Java Card</a></span><span class="count">2</span></li>
+	<li class="tag"><span><a href="/tag/pkcs7/">PKCS#7</a></span><span class="count">2</span></li>
+	<li class="tag"><span><a href="/tag/gong-xiang/">共享</a></span><span class="count">2</span></li>
+	<li class="tag"><span><a href="/tag/shu-zi-xin-feng/">数字信封</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/bian-ma/">编码</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/zi-fu/">字符</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/sheng-cheng-qi-mo-shi/">生成器模式</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/jian-zao-zhe-mo-shi/">建造者模式</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/she-ji-mo-shi/">设计模式</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/cap/">CAP</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/bo-ke/">博客</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/github/">github</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/jekyll/">Jekyll</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/xterm/">XTerm</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/xterm/">xterm</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/google-chrome/">google chrome</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/ru-men/">入门</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/shell/">Shell</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/pydev/">PyDev</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/python/">python</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/eclipse/">eclipse</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/ri-zhi/">日志</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/di-yi-pian-md-ri-zhi/">第一篇md日志</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/md/">md</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/pkcs12/">PKCS12</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/mplayer/">Mplayer</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/kuai-pan/">快盘</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/x.509/">X.509</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/shu-zi-zheng-shu/">数字证书</a></span><span class="count">1</span></li>
+  </ul>
+</section>
+<section>
+<h1>最新评论</h1>
+<!-- 多说最新评论 start -->
+	<div class="ds-recent-comments" data-num-items="5" data-show-avatars="1" data-show-time="1" data-show-title="1" data-show-admin="1" data-excerpt-length="70"></div>
+<!-- 多说最新评论 end -->
+<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"hbaojun"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- 多说公共JS代码 end -->
+</section>
+<section>
+<h1>新浪微博秀</h1>
+<iframe id="sina_widget_1310686285" style="width:100%; height:500px;" frameborder="0" scrolling="no" src="http://v.t.sina.com.cn/widget/widget_blog.php?uid=1310686285&height=500&skin=wd_01&showpic=1"></iframe>
+</section><section>
+<h1>来访者</h1>
+<script type="text/javascript" src="//rj.revolvermaps.com/0/0/6.js?i=9m23haujkxl&amp;m=0&amp;s=220&amp;c=ff0000&amp;cr1=ffffff&amp;f=arial&amp;l=1&amp;hi=10" async="async"></script>
+</section>
+<div id="totop" style="position:fixed;bottom:150px;right:50px;cursor: pointer;">
+<a title='返回顶部'><img src="/images/scrollup.png"/></a>
+</div></aside>
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  版权所有 &copy; 2015 - hbaojun -
+  <span class="credit">Powered by <a href="http://www.opoopress.com/">OpooPress</a>&nbsp;  <script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1,254,411,363'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s19.cnzz.com/z_stat.php%3Fid%3D1,254,411,363%26show%3Dpic' type='text/javascript'%3E%3C/script%3E"));</script>
+</span>
+</p>
+</footer>
+<script type="text/javascript" src="/javascripts/opoopress.min.js"></script>
+<script type="text/javascript" src="/javascripts/totop.js"></script>
+<script language="JavaScript">
+<!--
+    window.OpooPress = new OpooPressApp({siteUrl:'http://hbaojun.eu.org',rootUrl:'',pageUrl:'/2014/02/18/PKCS7结构分析之签名/',title:'PKCS#7结构分析之签名',refreshRelativeTimes:true,verbose:false},{});
+    OpooPress.init();
+
+
+var duoshuoQuery = {short_name:"hbaojun"};
+(function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = 'http://static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(ds);
+})();
+//-->
+</script>
+
+<!-- START: Syntax Highlighter ComPress -->
+<script type="text/javascript" src="/plugins/syntax-highlighter/scripts/shCore.js"></script>
+<script type="text/javascript" src="/plugins/syntax-highlighter/scripts/shAutoloader.js"></script>
+<script type="text/javascript">
+    SyntaxHighlighter.autoloader(
+        'applescript			/plugins/syntax-highlighter/scripts/shBrushAppleScript.js',
+        'actionscript3 as3		/plugins/syntax-highlighter/scripts/shBrushAS3.js',
+        'bash shell				/plugins/syntax-highlighter/scripts/shBrushBash.js',
+        'coldfusion cf			/plugins/syntax-highlighter/scripts/shBrushColdFusion.js',
+        'cpp c					/plugins/syntax-highlighter/scripts/shBrushCpp.js',
+        'c# c-sharp csharp		/plugins/syntax-highlighter/scripts/shBrushCSharp.js',
+        'css					/plugins/syntax-highlighter/scripts/shBrushCss.js',
+        'delphi pascal pas		/plugins/syntax-highlighter/scripts/shBrushDelphi.js',
+        'diff patch			    /plugins/syntax-highlighter/scripts/shBrushDiff.js',
+        'erl erlang				/plugins/syntax-highlighter/scripts/shBrushErlang.js',
+        'groovy					/plugins/syntax-highlighter/scripts/shBrushGroovy.js',
+        'java					/plugins/syntax-highlighter/scripts/shBrushJava.js',
+        'jfx javafx				/plugins/syntax-highlighter/scripts/shBrushJavaFX.js',
+        'js jscript javascript	/plugins/syntax-highlighter/scripts/shBrushJScript.js',
+        'perl pl				/plugins/syntax-highlighter/scripts/shBrushPerl.js',
+        'php					/plugins/syntax-highlighter/scripts/shBrushPhp.js',
+        'text plain				/plugins/syntax-highlighter/scripts/shBrushPlain.js',
+        'powershell ps          /plugins/syntax-highlighter/scripts/shBrushPowerShell.js',
+        'py python				/plugins/syntax-highlighter/scripts/shBrushPython.js',
+        'ruby rails ror rb		/plugins/syntax-highlighter/scripts/shBrushRuby.js',
+        'sass scss              /plugins/syntax-highlighter/scripts/shBrushSass.js',
+        'scala					/plugins/syntax-highlighter/scripts/shBrushScala.js',
+        'sql					/plugins/syntax-highlighter/scripts/shBrushSql.js',
+        'vb vbnet				/plugins/syntax-highlighter/scripts/shBrushVb.js',
+        'xml xhtml xslt html	/plugins/syntax-highlighter/scripts/shBrushXml.js'
+    );
+    SyntaxHighlighter.defaults['auto-links'] = false;                 
+    SyntaxHighlighter.defaults['toolbar'] = false;     
+    SyntaxHighlighter.defaults['tab-size'] = 4;
+    SyntaxHighlighter.all();
+</script>
+<!-- END: Syntax Highlighter ComPress -->
+
+<script>
+var _hmt = _hmt || [];
+_js2load.push({src:"//hm.baidu.com/hm.js?509d4839538ac35b343eaa32d5a8f6f1"});
+</script>
+</body>
+</html>
+

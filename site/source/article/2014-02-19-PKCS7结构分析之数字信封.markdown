@@ -1,0 +1,98 @@
+---
+layout: post
+title: PKCS#7结构分析之数字信封
+description: 学习分析PKCS#7数据组织结构
+date: '2014-02-19 12:00:00'
+categories: [PKCS#7, 信息安全]
+tags: [PKCS#7, 信息安全, 数字信封]
+---
+
+###Enveloped-data介绍###
+数字信封内容类型包括任意类型的加密内容和用来加密一个/多个接收者的秘钥组成。加密的内容和加密所使用的Key组成了一个接受者的数字信封。
+回忆一下PKCS#7一般ASN.1结构描述：
+<!--more-->
+```c
+ContentInfo ::= SEQUENCE {
+    contentType ContentType,
+    content  [0] EXPLICIT ANY DEFINED BY contentType OPTIONAL }
+}
+```c
+从下面内容很容易的查到ContentType的值。
+```c
+   data OBJECT IDENTIFIER ::= { pkcs-7 1 }
+   signedData OBJECT IDENTIFIER ::= { pkcs-7 2 }
+   envelopedData OBJECT IDENTIFIER ::= { pkcs-7 3 }
+   signedAndEnvelopedData OBJECT IDENTIFIER ::= { pkcs-7 4 }
+   digestedData OBJECT IDENTIFIER ::= { pkcs-7 5 }
+   encryptedData OBJECT IDENTIFIER ::= { pkcs-7 6 }
+```c
+**envelopedData**的OBJECT IDENTIFIER为"1.2.840.113549.1.7.3"  
+Enveloped-data的构建过程分以下几步：  
+1.随机产生一个用于特定加密算法加密密钥。    
+2.内容加密密钥用每个接收者的公钥加密。  
+3.对每一个接收者，都把用各自加密秘钥加了密的内容，加密密钥和接收者的其他信息放入RecipientInfo值中。  
+4.用内容加密密钥加密内容。  
+5.将所有接收者的RecipientInfo值和加了密的内容放入EnvelopedData值中。  
+<!-- more -->
+####EnvelopedData####
+enveloped-data内容类型应有ASN.1类型的EnvelopedData:
+```c
+EnvelopedData::= SEQUENCE {
+	version Version,                 //版本号
+	recipientInfos RecipientInfos,   //接受者信息
+	encryptedContentInfo EncryptedContentInfo  //加密后的内容信息
+}
+```
+接受者集合:  
+```c
+RecipientInfos::= SET OF RecipientInfo
+```
+和
+```c
+EncryptedContentInfo::= SEQUENCE {
+	contentType ContentType,  //内容类型
+	contentEncryptionAlgorithm  ContentEncryptionAlgorithmIdentifier, 
+	encryptedContent [0] IMPLICIT EncryptedContent OPTIONAL
+}
+```  
+ContentEncryptionAlgorithmIdentifier加密内容的加密算法标识。   
+```c
+EncryptedContent::= OCTET STRING
+```
+加密后的内容，是可选的。如果该域不存在，应该在其他地方来提供。   
+####RecipientInfo####
+```c
+RecipientInfo::= SEQUENCE {
+	version Version,   //版本号
+	issuerAndSerialNumber     IssuerAndSerialNumber,
+	keyEncryptionAlgorithm    KeyEncryptionAlgorithmIdentifier,
+	encryptedKey     EncryptedKey 
+}
+```
+**IssuerAndSerialNumber**     
+**issuerAndSerialNumber**指定由颁发者可辨别名和颁发序列号确定的接收者证书。   
+**KeyEncryptionAlgorithmIdentifier**    
+指定用接收者公钥加密内容加密密钥的密钥加密算法和相应的参数。  
+**EncryptedKey**     
+encryptedKey是内容加密密钥被接收者公钥加密后的结果。  
+####内容加密过程####
+输入内容加密过程也是打包成数字信封中的内容。特别的输入是ContentInfo值中content经BER编码的定长8bit字节串，用于打包数字信封的过程。只有内容经BER编码的8bit字节串被加密，不是标识符8bit字节串和长度8bit字节串。其他的8bit字节不表述。    
+当被封装的内容是data类型时，则仅有data的值（如文件内容）被加密。这样有一个优点，就是在加密处理前无需知道待加密的内容的长度。这个方法和PEM兼容。  
+identifier 8bit字节和length 8bit字节没有被加密。Length字节可能隐含地被加密过程保护，这依赖域加密算法。Identifier字节根本就不保护，虽然它们能够从内容类型中恢复，假设内容类型唯一决定identifier 字节。显式的保护identifier和length字节需要用signed-and-enveloped-data内容类型，或者成功的应用了digested-data和enveloped-data内容类型。   
+**Note:**  
+1. 选择定长的ASN.1编码，更加适合与简单的类型。
+2. 某些情况下假设输入内容的长度l为加密单位k字节的整数倍，如果不是整数倍就按照下面的方式填充.
+
+```c
+填充:01    (1个)                 if l (mod k) = k-1
+填充:02 02 (2个)				 if l (mod k) = k-2
+                  ...
+填充:k .... k ......k    if l (mod k) = 0  (填充k个)
+```
+
+
+
+
+
+
+

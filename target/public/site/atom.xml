@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title><![CDATA[大宝自习室]]></title>
+  <link href="http://hbaojun.eu.org/atom.xml" rel="self"/>
+  <link href="http://hbaojun.eu.org/"/>
+  <updated>2015-02-18T15:16:52+08:00</updated>
+  <id>http://hbaojun.eu.org/</id>
+  <author>
+    <name><![CDATA[hbaojun]]></name>
+    <email><![CDATA[hbaojun@outlook.com]]></email>
+  </author>
+  <generator uri="http://press.opoo.org/">OpooPress</generator>
+
+  <entry>
+    <title type="html"><![CDATA[Kali安装google chrome]]></title>
+    <link href="http://hbaojun.eu.org/2015/01/09/2015-1-9-google-chrome-install/"/>
+    <updated>2015-01-09T12:00:00+08:00</updated>
+    <id>http://hbaojun.eu.org/2015/01/09/2015-1-9-google-chrome-install/</id>
+    <content type="html"><![CDATA[<h3>google chrome</h3>
+<p>在安装完Kali之后,只有自带的浏览器iceweasel,简单配置就是安装中文包,将它汉化.但是在linux系统下,论浏览器外观还是chrome浏览器看着最舒服,而且还有很坑的一点就是flash插件,特别是在看网易云课堂的时候,安装flash插件后还是提醒版本太低,不能通过浏览器查看视频.但是用google chrome可以看.</p>
+]]></content>
+  </entry>
+  <entry>
+    <title type="html"><![CDATA[Kali安装小记]]></title>
+    <link href="http://hbaojun.eu.org/2015/01/09/2015-1-9-Kali-install-pick/"/>
+    <updated>2015-01-09T12:00:00+08:00</updated>
+    <id>http://hbaojun.eu.org/2015/01/09/2015-1-9-Kali-install-pick/</id>
+    <content type="html"><![CDATA[<h3>Kali</h3>
+<p>Kali linux是基于Debain发型的版本，前身是大名鼎鼎的BackTrace Linux.他的桌面采用的是修改过的Gnome 3, 登陆管理器是GDM3,主要的特点在于集成了很多安全渗透方面的工具，方便从事安全相关工作或者对安全感兴趣的人员使用。我平时主要使用Arch linux,也是最近无意中看到这个版本的介绍才开始使用Kali linux的。</p>
+<p>不得不说，Kali相对与Arch来说省了很多事,安装完成之后做些许的配置就可以使用了。举个例子来说，我所使用的笔记本Thinkpad X220，前天换了一块1T的硬盘，重新安装Win7,剩下的要安装Kali。在Kali安装过程结束之后，Kali基本上就可以使用了，很多软件都自带了，连带着电脑的无线网卡驱动都安装了，省了大把的时间。<br  /></p>
+<h3>Kali安装</h3>
+<p>现在基本上都是用U盘来安装系统的，原因很简单，X220上没有光驱。囧<br  />
+在Win7下使用Win32DiskImage工具，将Kali镜像写入到U盘，然后使用U盘来启动电脑，选择安装选项就OK了。过程很简单，不再赘述。<br  /></p>
+<h3>添加用户遇到的问题</h3>
+<p>Kali安装完成后，重启电脑，使用root账户登录到系统。创建新用户：<br  /></p>
+<pre class="prettyprint">
+useradd -m huang
+</pre>
+<p>然后到/etc/passwd文件将huang所在一行中的x删掉，以后登录系统就不需要密码(个人习惯，但不安全也不推荐)。注销使用新账户登录系统后遇到一个很坑的问题，使用终端的时候，上下方向键出来的是<sup>[[[A和</sup>[[[B,而不是历史命令，并且在每行命令开头不是PS1参数来确定的，只有一个&rdquo;$&ldquo;在没一行头。<br  /></p>
+<p>但是root账户登录系统又没有什么问题，一切正常。感觉很奇怪，原因到底处在什么地方呢？<br  /></p>
+<p>开始以为是bashrc文件的配置问题，但是将普通用户的bashrc文件修改后，问题仍然没有解决。最后在网上查了一下，以前就有人遇到了同样的问题。在这位朋友的博客中看到解决方案是在/etc/passwd文件中用户所制定的shell是sh，而不是bash，没有命令补全等功能。<br  /></p>
+<p>我直接在passwd文件中修改成/bin/bash，问题得到解决。在此非常感谢这位朋友。当时没有把网址保存，不然把链接附上。</p>
+]]></content>
+  </entry>
+  <entry>
+    <title type="html"><![CDATA[Kali中xterm字体设置]]></title>
+    <link href="http://hbaojun.eu.org/2015/01/08/2015-1-8-xterm-font-pick/"/>
+    <updated>2015-01-08T12:00:00+08:00</updated>
+    <id>http://hbaojun.eu.org/2015/01/08/2015-1-8-xterm-font-pick/</id>
+    <content type="html"><![CDATA[<p>在Kali系统中,使用xterm终端遇到很奇怪的问题,就是下划线显示不出来
+<img src="/images/xterm-14.png" alt="xterm" align="middle"  /></p>
+]]></content>
+  </entry>
+  <entry>
+    <title type="html"><![CDATA[Shell学习笔记]]></title>
+    <link href="http://hbaojun.eu.org/2014/12/27/learn-bash-program/"/>
+    <updated>2014-12-27T12:00:00+08:00</updated>
+    <id>http://hbaojun.eu.org/2014/12/27/learn-bash-program/</id>
+    <content type="html"><![CDATA[<h2>Shell介绍</h2>
+<p>Shell是Linux内核的外壳程序，用户通过Shell向Linux内核发送相关指令来完成一系列任务。Shell是一个命令语言解释器，它拥有自己内建的Shell命令集。</p>
+]]></content>
+  </entry>
+  <entry>
+    <title type="html"><![CDATA[Samba配置文件]]></title>
+    <link href="http://hbaojun.eu.org/2014/08/07/config-file-of-samba/"/>
+    <updated>2014-08-07T12:00:00+08:00</updated>
+    <id>http://hbaojun.eu.org/2014/08/07/config-file-of-samba/</id>
+    <content type="html"><![CDATA[<p>前面的内容简单介绍了Samba简单的应用，适合从来没有接触过Samba(跟我一样)配置的同学。这篇博文就对Samba配置文件做一个简单的总结。</p>
+]]></content>
+  </entry>
+  <entry>
+    <title type="html"><![CDATA[Samba配置续]]></title>
+    <link href="http://hbaojun.eu.org/2014/08/06/another-samba-config/"/>
+    <updated>2014-08-06T12:00:00+08:00</updated>
+    <id>http://hbaojun.eu.org/2014/08/06/another-samba-config/</id>
+    <content type="html"><![CDATA[<p>续上篇博文，接下来继续介绍Samba一些比较常用的配置选项.</p>
+]]></content>
+  </entry>
+  <entry>
+    <title type="html"><![CDATA[Samba配置]]></title>
+    <link href="http://hbaojun.eu.org/2014/08/05/samba/"/>
+    <updated>2014-08-05T12:00:00+08:00</updated>
+    <id>http://hbaojun.eu.org/2014/08/05/samba/</id>
+    <content type="html"><![CDATA[<h3>Samba简介</h3>
+<p><img src="/images/samba.png" alt="Samba" align="middle" /><br  />
+Samba是在Linux和UNIX系统上实现SMB协议的一个免费软件，</p>
+]]></content>
+  </entry>
+  <entry>
+    <title type="html"><![CDATA[eclipse安装PyDev问题]]></title>
+    <link href="http://hbaojun.eu.org/2014/07/11/eclipse-PyDev-config/"/>
+    <updated>2014-07-11T12:00:00+08:00</updated>
+    <id>http://hbaojun.eu.org/2014/07/11/eclipse-PyDev-config/</id>
+    <content type="html"><![CDATA[<p>最近要做一个关于SM2的测试，需要用到python脚本语言来完成。去年曾简单的写过一个测试DES算法的脚本，但早已忘的差不多了。现在要重新写一个，所幸功能比较简单，不难完成。但是这次在安装python的开发环境的时候遇到了曾经没有遇到的问题。(电脑重装过，曾经的开发环境已经更改)</p>
+]]></content>
+  </entry>
+  <entry>
+    <title type="html"><![CDATA[Mplayer的简单配置]]></title>
+    <link href="http://hbaojun.eu.org/2014/07/08/my-simple-mplayer-config/"/>
+    <updated>2014-07-08T12:00:00+08:00</updated>
+    <id>http://hbaojun.eu.org/2014/07/08/my-simple-mplayer-config/</id>
+    <content type="html"><![CDATA[<p>今天无意之中用mplayer看了电脑中的一个MV，但是发现在i3-wm之下，画面很卡顿，非常不流畅。而且声音也是跟画面一样出现异常的情况，感觉这个情况很诡异。抱着不把问题解决是不罢休的精神，开始了折腾之旅。</p>
+]]></content>
+  </entry>
+  <entry>
+    <title type="html"><![CDATA[学驾结束]]></title>
+    <link href="http://hbaojun.eu.org/2014/07/03/learn-the-drive-over/"/>
+    <updated>2014-07-03T12:00:00+08:00</updated>
+    <id>http://hbaojun.eu.org/2014/07/03/learn-the-drive-over/</id>
+    <content type="html"><![CDATA[<p>7月3号终于把科目三和科目四考完，驾照顺利拿到。</p>
+]]></content>
+  </entry>
+  <entry>
+    <title type="html"><![CDATA[学驾结束续]]></title>
+    <link href="http://hbaojun.eu.org/2014/07/03/the-end-of-learn-drive/"/>
+    <updated>2014-07-03T12:00:00+08:00</updated>
+    <id>http://hbaojun.eu.org/2014/07/03/the-end-of-learn-drive/</id>
+    <content type="html"><![CDATA[<h3>科目三</h3>
+<p>科目三在武昌这边训练了3天，我住学校离722所挺远的，走路快也需要35+分钟。所以这几天都是5点钟准时起床，出寝室都提前都跟楼管阿姨打好招呼。去的途中会在广八路买两个包子应付一下。</p>
+]]></content>
+  </entry>
+  <entry>
+    <title type="html"><![CDATA[XTerm的简单配置]]></title>
+    <link href="http://hbaojun.eu.org/2014/06/25/my-xterm-simple-config/"/>
+    <updated>2014-06-25T12:00:00+08:00</updated>
+    <id>http://hbaojun.eu.org/2014/06/25/my-xterm-simple-config/</id>
+    <content type="html"><![CDATA[<p>这次在重装了系统之后，着重尝试了一下XTerm终端，经过一番的配置感觉很不错，功能和外观同桌面系统自带的terminal几乎一样，至少现在本人还没有看到较大的差别。<br  /></p>
+]]></content>
+  </entry>
+  <entry>
+    <title type="html"><![CDATA[Linux的小技巧]]></title>
+    <link href="http://hbaojun.eu.org/2014/04/18/some-config/"/>
+    <updated>2014-04-18T12:00:00+08:00</updated>
+    <id>http://hbaojun.eu.org/2014/04/18/some-config/</id>
+    <content type="html"><![CDATA[<p><strong>cd</strong>命令在最近两个目录之间切换<br  /></p>
+<pre class="prettyprint">
+[huang@arch hbaojun]$ pwd
+/home/huang/work/hbaojun  
+[huang@arch hbaojun]$ cd - 
+/home/huang  
+[huang@arch ~]$ cd -
+/home/huang/work/hbaojun
+</pre>
+]]></content>
+  </entry>
+  <entry>
+    <title type="html"><![CDATA[考完试之后]]></title>
+    <link href="http://hbaojun.eu.org/2014/04/13/after-the-exam/"/>
+    <updated>2014-04-13T08:00:00+08:00</updated>
+    <id>http://hbaojun.eu.org/2014/04/13/after-the-exam/</id>
+    <content type="html"><![CDATA[<p>今天一大早就起床了，尽管昨天睡的也不早。在床上硬着头皮使劲做题目的时候，眼睛都有点睁不开了。但还是勉强把973道题都再做了一遍。</p>
+]]></content>
+  </entry>
+  <entry>
+    <title type="html"><![CDATA[ArchLinux下安装快盘]]></title>
+    <link href="http://hbaojun.eu.org/2014/04/13/install-kuaipan/"/>
+    <updated>2014-04-13T08:00:00+08:00</updated>
+    <id>http://hbaojun.eu.org/2014/04/13/install-kuaipan/</id>
+    <content type="html"><![CDATA[<p>前两天把同步到网盘的资料整理了一下，需要同步到网上去。我个人可能是个网盘控吧，我把同一个文件夹同时用快盘和Dropbox同步。起初要这么做一是因为我平时需要同时在Windows和Linux操作系统下，所收集到的资料也同时需要在两个平台上使用，所以这些文件在两个操作系统下都需要一份，并且同步；</p>
+]]></content>
+  </entry>
+  <entry>
+    <title type="html"><![CDATA[身体有点不适]]></title>
+    <link href="http://hbaojun.eu.org/2014/03/22/the-day-feeling/"/>
+    <updated>2014-03-22T08:00:00+08:00</updated>
+    <id>http://hbaojun.eu.org/2014/03/22/the-day-feeling/</id>
+    <content type="html"><![CDATA[<p>昨天身体有点不舒服，感觉浑身没什么劲，头有千斤重一样，不知道是怎么搞的？突然之间生病了？晚上睡觉感觉体温有点高，估计是有点发烧了。</p>
+]]></content>
+  </entry>
+  <entry>
+    <title type="html"><![CDATA[PolarSSL之SSL Cache实现]]></title>
+    <link href="http://hbaojun.eu.org/2014/03/19/polarssl-ssl-cache/"/>
+    <updated>2014-03-19T12:00:00+08:00</updated>
+    <id>http://hbaojun.eu.org/2014/03/19/polarssl-ssl-cache/</id>
+    <content type="html"><![CDATA[<h3>SSL Session</h3>
+<p>在SSL协议中，每次Client向Server发送认证请求，Server端都会产生一个SSL回话session.在这个session中包含这个将回话的主要信息，用来匹配该连接。下面的代码是PolarSSL中定义的ssl会话结构:<br  /></p>
+]]></content>
+  </entry>
+  <entry>
+    <title type="html"><![CDATA[PolarSSL之杂凑算法(二)]]></title>
+    <link href="http://hbaojun.eu.org/2014/03/16/md-of-polarssl-2/"/>
+    <updated>2014-03-16T12:00:00+08:00</updated>
+    <id>http://hbaojun.eu.org/2014/03/16/md-of-polarssl-2/</id>
+    <content type="html"><![CDATA[<p>在这篇博客中主要来解读在SSL协议中对摘要函数的选择。首先在md.h文件中看到如下的代码:</p>
+]]></content>
+  </entry>
+  <entry>
+    <title type="html"><![CDATA[杂凑函数简单介绍]]></title>
+    <link href="http://hbaojun.eu.org/2014/03/16/analysis-of-polarssl/"/>
+    <updated>2014-03-16T08:00:00+08:00</updated>
+    <id>http://hbaojun.eu.org/2014/03/16/analysis-of-polarssl/</id>
+    <content type="html"><![CDATA[<p>经过一段时间的学习TLS/SSL标准文档，比对着开源SSL实现库PolarSSL源代码的学习，一下做一些简单的记录。<br  /></p>
+]]></content>
+  </entry>
+  <entry>
+    <title type="html"><![CDATA[PolarSSL之杂凑算法(一)]]></title>
+    <link href="http://hbaojun.eu.org/2014/03/16/md-of-polarssl-1/"/>
+    <updated>2014-03-16T08:00:00+08:00</updated>
+    <id>http://hbaojun.eu.org/2014/03/16/md-of-polarssl-1/</id>
+    <content type="html"><![CDATA[<p>在上面的一篇博客中，我简单总结介绍了一下杂凑函数的基本知识。从这一篇博客开始，需要对PolarSSL中哈希函数的实现来概要分析。
+首先的问题是在PolarSSL库中实现了多少种杂凑函数？从md.h文件中可以看到如下的代码:</p>
+]]></content>
+  </entry>
+</feed>

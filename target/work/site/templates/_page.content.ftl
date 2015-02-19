@@ -1,0 +1,1 @@
+<#include "/_page.ftl"><@pageLayout>${content}</@pageLayout>

@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="zh"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>CAP文件之类组件分析 - 大宝自习室</title>
+  <meta name="author" content="hbaojun">
+  <meta name="baidu-site-verification" content="IlnJjhdGXL" />
+  <meta name="description" content="学习记录CAP文件结构定义类型">
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="OpooPressSiteRoot" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="Generator" content="OpooPress-1.1.1"/>
+  <meta name="Generated" content="2015-02-18T15:16:52+08:00"/>
+  <link rel="canonical" href="/2014/01/21/CAP之类组件/">
+  
+  
+  <link href="/favicon.ico" rel="icon">
+  <link href="/atom.xml" rel="alternate" title="大宝自习室" type="application/atom+xml">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+  <link href="//fonts.useso.com/css?family=PT+Serif:regular,italic,bold,bolditalic|PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+  <link type="text/css" rel="stylesheet" href="/plugins/syntax-highlighter/styles/shCoreDefault.css"/>
+  <!--[if lt IE 9]><script src="/javascripts/html5shiv.js"></script><![endif]-->
+</head>
+<body>
+  <!--[if lt IE 9]><script src="/javascripts/unsupported-browser.js"></script><![endif]-->
+  <header role="banner"><hgroup>
+  <h1><a href="/">大宝自习室</a></h1>
+    <h2>道路就在脚下</h2>
+</hgroup>
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+</ul>
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:http://hbaojun.eu.org" />
+    <input class="search" type="text" name="q" results="0" placeholder="搜索"/>
+  </fieldset>
+</form>
+
+<fieldset class="mobile-nav">
+  <select onchange="if (this.value) { window.location.href = this.value;}">
+    <option value="">导航&hellip;</option>
+    <option value="/">&raquo; 文章</option>
+    <option value="/archives/">&raquo; 归档</option>
+    <option value="/about/">&raquo; 关于</option>
+  </select>
+</fieldset>
+
+<ul class="main-navigation">
+<li><a href="/">文章</a></li>
+<li><a href="/archives/">归档</a></li>
+<li><a href="/about/">关于</a></li>
+</ul>
+</nav>
+  <div id="main">
+    <div id="content">
+<div>
+<article class="hentry" role="article">
+  <header>
+      <h1 class="entry-title">CAP文件之类组件分析</h1>
+
+      <p class="meta">
+		
+
+
+<time datetime="2014-01-21T12:00:00+08:00" pubdate>2014年01月21日</time>
+         | <a href="#ds-thread">评论</a>
+      </p>
+  </header>
+
+  <div class="entry-content"><h3>类组件的定义</h3>
+<p>类组件(Class Component)描述了在该包下每个类和接口的定义。但是它不包含每个类和接口的访问信息和内容细节。</p>
+<p>取而代之的是它包含了有限的需要跟执行操作箱管的特定类和接口，并且没有执行验证。</p>
+<p>关于定义在这包里的类和接口的完整细节包含在描述组件之中。</p>
+<!--more-->
+<p>对每个接口来说，包含在类组件中的的信息足够来唯一识别和计算这个接口是否合法。</p>
+<p>对每个类来说，包含在类组件中的信息足够决定与某个实例相关的一些操作。这些操作包括创建实例，测试实例的计算是否合法，分派虚拟方法调用和分派接口方法调用。</p>
+<p>当然累组件中也包含足够的信息来定位实例的类型引用域，包括数组。</p>
+<p>在类组件中描述的类以超类，超接口或者实现的接口的形式来引用在类组件中的其他条目。当超类，超接口或者实现的接口定义在导入的包中时，导入组件便会用在引用的表现表现。</p>
+<p>描述在类组件的中的类同样包含定义在当前CAP文件中方法组件中虚拟方法的引用。定义在导入包对虚拟方法的引用没有显示的被描述出来，相反这些类被定位通过在类层级中的超类，这些超类被定义在同虚拟方法的一样的导入包中。</p>
+<p>常量池组件，导出组件，描述组件和调试组件引用的类和接口被定义在类组件中。没有其他CAP文件中的组件引用类组件。
+类组件的描述结构：</p>
+<pre class="prettyprint">
+class_component{
+    u1 tag
+    u2 size
+    u2 signature_pool_length
+    type_descriptor signature_pool[]
+    interface_info interfaces[]
+}
+</pre>
+<p>类型解释：</p>
+<p><strong>tag</strong>
+tag项的值为COMPONENT_Class值，规定为6;</p>
+<p><strong>size</strong>
+size项定义了类组件结构的字节大小，除了tag和size自身项之外。另外size的值必须大于0；</p>
+<p><strong>signature_pool_length</strong>
+signature_pool_length描述了在signature_pool项中所占的字节大小。如果这个包中没定义任何远程接口和远程对象，它的值必须为0;</p>
+<p><strong>signature_pool[]</strong>
+signature_pool项描述了一列变长的类型描述符结构。这些描述符代表了远程方法的签名。</p>
+<p><strong>interface[]</strong>
+interface项代表了一列interface_info结构数组。在包里定义的每个接口在这个数组里都被描述。这些项的顺序按照超接口比其任何子接口序号低的层次排序。
+<strong>classes[]</strong>
+classes项代表一列变长的class_info结构表，在这个包里定义的每个类都被描述在这个数组里。里面条目的顺序基于超类比其任何子类的更低的序号的层次关系。</p>
+<h3>type_descriptor</h3>
+<p><em>type_descriptor</em>结构描述了某个域的类型或者方法的签名值。</p>
+<pre>
+type_descriptor{
+    u1 nibble_count;
+    u1 type[(nibble_count+1)/2];
+}
+</pre>
+<p>上述结构包括以下两元素。
+<em>nibble_count</em>
+nibble_count的值描述了需要在类型编码在类型数组中的数量。
+<em>type[]</em>
+type数组包含被编码的类型描述符，由一些单独的半字节组成。如果nibble_count是奇数，在类型数组中的最后半个字节必须为0x0.
+类型描述符对应的半字节值定义如下:</p>
+<h3>interface_info和class_info</h3>
+<p>interface_info和class_info结构代表分别接口和类。他们两个有结构中高bit位值不同来区分。结构分别定义如下：
+<code class="language-C">
+interface_info{</p>
+<pre>u1 bitfield{
+    bit[4] flags
+    bit[4] interface_count
+}
+class_ref superinterfaces[interface_count]
+interface_name_info interface_name
+</pre><p>}
+</code></p>
+<pre class='brush:c'>class_info{
+    u1 bitfield{
+        bit[4] flags
+        bit[4] interface_count
+    }
+    class_ref super_class_ref
+    u1 declared_instance_size
+    u1 first_reference_token
+    u1 reference_count
+    u1 public_method_table_base
+    u1 public_method_table_count
+    u1 package_method_table_base
+    u1 package_method_table_count
+    u2 public_virtual_method_table[public_method_table_count]
+    u2 package_virtual_method_table[package_method_table_count]
+    implemented_interface_info interfaces[interface_count]
+    remote_interface_info remote_interfaces
+}
+</pre><h4>interface_info与class_info公共项</h4>
+<p><strong>flag</strong><br  />
+flag项是修改器堆栈的掩码，用来描述这个类或者接口。合法的值如下表：</p>
+<p><strong>ACC_INTERFACE</strong>标记标示着这个interface_info或者class_info结构代表着一个接口或者类。
+ACC_INTERFACE=1，代表interface_info结构
+ACC_INTERFACE=0, 代表class_info结构</p>
+<p><em>ACC_SHAREABLE</em>在interface_info结构中标示这个接口是否共享。当且仅当这个接口是javacard.framework.Shareable接口或者扩展这个接口直接或者间接时，这个值为1.</p>
+<p><em>ACC_REMOTE</em>标示了这个接口或者类是远程的。当且仅当这个类或者接口满足定义在2.2.6.1
+“Remote Classes and Remote Interfaces“要求时，其值为1.</p>
+<p>其他标示值被保留。他们的值都是0.</p>
+<p><em>interface_count</em><br  />
+在interface_info结构中的interface_count项标示着在superinterfaces[]表格中的项数。这个值代表了这个接口直接或者间接地超接口数。间接地超接口集是直接超接口的超接口集。合法的值在0和14之间，并且包括0和14.
+在class_info结构中的interface_count项标示着在接口表格中的书里面。它的值代表着被这个类实现的接口数量，包括这些接口的超类和这个类超类所实现的潜在的接口。合法的值在0到15之间，两边都可以取。</p>
+<h5>interface_info项</h5>
+<p>在interface_info结构中superinterfaces[]项是一系列class_ref结构的数组，代表着这个接口的超接口。class_ref结构被定义CONSTANT_Classref_info结构的一部分。当这个接口没有超接口时，这个结构为空。直接或者间接地超接口都会在这个数组中描述。类对象不包括在内。</p>
+<p><em>interface_name[]</em>
+interface_name[]项代表需要的接口名信息，如果这个接口是远程的。interface_name[]项是有interface_name_info结构定义的。如果ACC_REMOTE标记为0，结构定义如下</p>
+<pre class='brush:c'>interface_name_info{
+
+}
+</pre><p>如果ACC_REMOTE=1，结构定义如下:</p>
+<pre class='brush:c'>interface_name_info{
+    u1 interface_name_length
+    u1 interface_name[interface_name_length]
+}
+</pre><p>结构体中定义的细节如下：
+interface_name_length标示在interface_name[]中的字节数。
+interface_name[]项是变长的这个接口的名称，经UTF-8编码。</p>
+<h5>class_info项</h5>
+<p>super_class_ref
+class_info结构中的super_class_ref是个class_ref结构，带表着这个类的超类。class_ref结构定义为CONSTANT_Classref_info结构的一部分。
+当只有这个类没有超类时</p>
+</div>
+  <footer>
+    <p class="meta">
+      <div style="font-size:80%">
+<div>
+<div align="center">希望本站内容对您有点用处,有什么疑问或建议请在后面留言评论</div>
+<div style="text-indent:2em;">若无特别注明，本站内容均属原创,转载请注明作者(<a href="http://hbaojun.eu.org">hbaojun</a>)和出处 <a href="http://hbaojun.eu.org/2014/01/21/CAP之类组件/">大宝自习室</a> ，请勿用于任何商业用途。</div>
+<div style="text-indent:2em;">本文链接: <a href="http://hbaojun.eu.org/2014/01/21/CAP之类组件/">http://hbaojun.eu.org/2014/01/21/CAP之类组件/</a></div>
+</div><span class="byline author vcard">作者 <span class="fn">hbaojun</span></span>      
+
+
+<time datetime="2014-01-21T12:00:00+08:00" pubdate>2014年01月21日</time>
+      
+<span class="categories">属于 <a class="category" href="/category/javacard/">JavaCard</a>
+ 分类</span>
+
+
+<span class="categories">被贴了 <a class="tag" href="/tag/java/">Java</a>, <a class="tag" href="/tag/java-card/">Java Card</a>, <a class="tag" href="/tag/xin-xi-an-quan/">信息安全</a>, <a class="tag" href="/tag/cap/">CAP</a>
+ 标签</span>
+</div>
+    </p>
+<div class="sharing">
+      <div class="bdsharebuttonbox"><a href="#" class="bds_more" data-cmd="more"></a><a title="分享到QQ空间" href="#" class="bds_qzone" data-cmd="qzone"></a><a title="分享到新浪微博" href="#" class="bds_tsina" data-cmd="tsina"></a><a title="分享到腾讯微博" href="#" class="bds_tqq" data-cmd="tqq"></a><a title="分享到人人网" href="#" class="bds_renren" data-cmd="renren"></a><a title="分享到微信" href="#" class="bds_weixin" data-cmd="weixin"></a></div>
+    <script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"16"},"share":{},"image":{"viewList":["qzone","tsina","tqq","renren","weixin"],"viewText":"分享到：","viewSize":"16"}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];</script>
+</div>
+<p>
+  <h2>相关文章</h2>
+  <ul id="related-posts-list">
+      <li class="post">
+        <a href="/2014/01/15/JavaCard简介/">JavaCard 简介</a>
+        <div class="source right"><time datetime="2014-01-15T12:00:00">2014-01-15</time></div>
+      </li>
+      <li class="post">
+        <a href="/2013/05/08/PKCS12结构-1/">PKCS12结构-1</a>
+        <div class="source right"><time datetime="2013-05-08T08:00:00">2013-05-08</time></div>
+      </li>
+      <li class="post">
+        <a href="/2014/02/18/PKCS7结构分析之签名/">PKCS#7结构分析之签名</a>
+        <div class="source right"><time datetime="2014-02-18T08:00:00">2014-02-18</time></div>
+      </li>
+      <li class="post">
+        <a href="/2014/02/19/PKCS7结构分析之数字信封/">PKCS#7结构分析之数字信封</a>
+        <div class="source right"><time datetime="2014-02-19T12:00:00">2014-02-19</time></div>
+      </li>
+      <li class="post">
+        <a href="/2014/02/28/SSL与TLS协议/">SSL与TLS协议</a>
+        <div class="source right"><time datetime="2014-02-28T08:00:00">2014-02-28</time></div>
+      </li>
+  </ul>
+</p>    <p class="meta">
+        <a class="basic-alignment left" href="/2014/01/19/Jekyll博客的配置/" title="上一篇: Jekyll博客的配置">&laquo; Jekyll博客的配置</a>
+        <a class="basic-alignment right" href="/2014/02/18/PKCS7结构分析之签名/" title="下一篇: PKCS#7结构分析之签名">PKCS#7结构分析之签名 &raquo;</a>
+    </p>
+  </footer>
+</article>
+  <section>
+    <h1>评论</h1>
+    <div id="ds-thread" class="ds-thread" data-thread-key="/2014/01/21/CAP之类组件/" data-title="CAP文件之类组件分析"></div>
+  </section>
+</div>
+<aside class="sidebar">
+
+<section>
+  <h1>分类</h1>
+  <ul id="categories">
+	<li class="category"><a href="/category/xin-xi-an-quan/">信息安全</a><span class="count right">8</span>
+	</li>
+	<li class="category"><a href="/category/linux/">Linux</a><span class="count right">19</span>
+	</li>
+	<li class="category"><a href="/category/xue-xi/">学习</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/gong-zuo/">工作</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/ming-ling-xing/">命令行</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/sheng-huo/">生活</a><span class="count right">6</span>
+	</li>
+	<li class="category"><a href="/category/python/">python</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/c/c/">C/C++</a><span class="count right">4</span>
+	</li>
+	<li class="category"><a href="/category/gui/">GUI</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/tu-xing-jie-mian/">图形界面</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/jekyll/">Jekyll</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/pkcs7/">PKCS#7</a><span class="count right">2</span>
+	</li>
+	<li class="category"><a href="/category/java/">Java</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/javacard/">JavaCard</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/she-ji-mo-shi/">设计模式</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/bian-ma/">编码</a><span class="count right">1</span>
+	</li>
+  </ul>
+</section>
+<section>
+  <h1>近期文章</h1>
+  <ul id="recent_posts">
+  
+  
+      <li class="post">
+        <a href="/2015/01/09/2015-1-9-google-chrome-install/">Kali安装google Chrome</a>
+      </li>
+      <li class="post">
+        <a href="/2015/01/09/2015-1-9-Kali-install-pick/">Kali安装小记</a>
+      </li>
+      <li class="post">
+        <a href="/2015/01/08/2015-1-8-xterm-font-pick/">Kali中xterm字体设置</a>
+      </li>
+      <li class="post">
+        <a href="/2014/12/27/learn-bash-program/">Shell学习笔记</a>
+      </li>
+      <li class="post">
+        <a href="/2014/08/07/config-file-of-samba/">Samba配置文件</a>
+      </li>
+  </ul>
+</section>
+<section>
+  <h1>标签</h1>
+  <ul id="tags">
+	<li class="tag"><span><a href="/tag/linux/">Linux</a></span><span class="count">12</span></li>
+	<li class="tag"><span><a href="/tag/xin-xi-an-quan/">信息安全</a></span><span class="count">10</span></li>
+	<li class="tag"><span><a href="/tag/ssl/">SSL</a></span><span class="count">5</span></li>
+	<li class="tag"><span><a href="/tag/tls/">TLS</a></span><span class="count">5</span></li>
+	<li class="tag"><span><a href="/tag/sheng-huo/">生活</a></span><span class="count">4</span></li>
+	<li class="tag"><span><a href="/tag/java/">Java</a></span><span class="count">4</span></li>
+	<li class="tag"><span><a href="/tag/gnu/">GNU</a></span><span class="count">4</span></li>
+	<li class="tag"><span><a href="/tag/kali/">Kali</a></span><span class="count">3</span></li>
+	<li class="tag"><span><a href="/tag/pei-zhi/">配置</a></span><span class="count">3</span></li>
+	<li class="tag"><span><a href="/tag/za-cou-han-shu/">杂凑函数</a></span><span class="count">3</span></li>
+	<li class="tag"><span><a href="/tag/wang-luo-an-quan/">网络安全</a></span><span class="count">3</span></li>
+	<li class="tag"><span><a href="/tag/samba/">Samba</a></span><span class="count">3</span></li>
+	<li class="tag"><span><a href="/tag/xue-jia/">学驾</a></span><span class="count">2</span></li>
+	<li class="tag"><span><a href="/tag/java-card/">Java Card</a></span><span class="count">2</span></li>
+	<li class="tag"><span><a href="/tag/pkcs7/">PKCS#7</a></span><span class="count">2</span></li>
+	<li class="tag"><span><a href="/tag/gong-xiang/">共享</a></span><span class="count">2</span></li>
+	<li class="tag"><span><a href="/tag/shu-zi-xin-feng/">数字信封</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/bian-ma/">编码</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/zi-fu/">字符</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/sheng-cheng-qi-mo-shi/">生成器模式</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/jian-zao-zhe-mo-shi/">建造者模式</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/she-ji-mo-shi/">设计模式</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/cap/">CAP</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/bo-ke/">博客</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/github/">github</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/jekyll/">Jekyll</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/xterm/">XTerm</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/xterm/">xterm</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/google-chrome/">google chrome</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/ru-men/">入门</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/shell/">Shell</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/pydev/">PyDev</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/python/">python</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/eclipse/">eclipse</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/ri-zhi/">日志</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/di-yi-pian-md-ri-zhi/">第一篇md日志</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/md/">md</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/pkcs12/">PKCS12</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/mplayer/">Mplayer</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/kuai-pan/">快盘</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/x.509/">X.509</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/shu-zi-zheng-shu/">数字证书</a></span><span class="count">1</span></li>
+  </ul>
+</section>
+<section>
+<h1>最新评论</h1>
+<!-- 多说最新评论 start -->
+	<div class="ds-recent-comments" data-num-items="5" data-show-avatars="1" data-show-time="1" data-show-title="1" data-show-admin="1" data-excerpt-length="70"></div>
+<!-- 多说最新评论 end -->
+<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"hbaojun"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- 多说公共JS代码 end -->
+</section>
+<section>
+<h1>新浪微博秀</h1>
+<iframe id="sina_widget_1310686285" style="width:100%; height:500px;" frameborder="0" scrolling="no" src="http://v.t.sina.com.cn/widget/widget_blog.php?uid=1310686285&height=500&skin=wd_01&showpic=1"></iframe>
+</section><section>
+<h1>来访者</h1>
+<script type="text/javascript" src="//rj.revolvermaps.com/0/0/6.js?i=9m23haujkxl&amp;m=0&amp;s=220&amp;c=ff0000&amp;cr1=ffffff&amp;f=arial&amp;l=1&amp;hi=10" async="async"></script>
+</section>
+<div id="totop" style="position:fixed;bottom:150px;right:50px;cursor: pointer;">
+<a title='返回顶部'><img src="/images/scrollup.png"/></a>
+</div></aside>
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  版权所有 &copy; 2015 - hbaojun -
+  <span class="credit">Powered by <a href="http://www.opoopress.com/">OpooPress</a>&nbsp;  <script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1,254,411,363'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s19.cnzz.com/z_stat.php%3Fid%3D1,254,411,363%26show%3Dpic' type='text/javascript'%3E%3C/script%3E"));</script>
+</span>
+</p>
+</footer>
+<script type="text/javascript" src="/javascripts/opoopress.min.js"></script>
+<script type="text/javascript" src="/javascripts/totop.js"></script>
+<script language="JavaScript">
+<!--
+    window.OpooPress = new OpooPressApp({siteUrl:'http://hbaojun.eu.org',rootUrl:'',pageUrl:'/2014/01/21/CAP之类组件/',title:'CAP文件之类组件分析',refreshRelativeTimes:true,verbose:false},{});
+    OpooPress.init();
+
+
+var duoshuoQuery = {short_name:"hbaojun"};
+(function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = 'http://static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(ds);
+})();
+//-->
+</script>
+
+<!-- START: Syntax Highlighter ComPress -->
+<script type="text/javascript" src="/plugins/syntax-highlighter/scripts/shCore.js"></script>
+<script type="text/javascript" src="/plugins/syntax-highlighter/scripts/shAutoloader.js"></script>
+<script type="text/javascript">
+    SyntaxHighlighter.autoloader(
+        'applescript			/plugins/syntax-highlighter/scripts/shBrushAppleScript.js',
+        'actionscript3 as3		/plugins/syntax-highlighter/scripts/shBrushAS3.js',
+        'bash shell				/plugins/syntax-highlighter/scripts/shBrushBash.js',
+        'coldfusion cf			/plugins/syntax-highlighter/scripts/shBrushColdFusion.js',
+        'cpp c					/plugins/syntax-highlighter/scripts/shBrushCpp.js',
+        'c# c-sharp csharp		/plugins/syntax-highlighter/scripts/shBrushCSharp.js',
+        'css					/plugins/syntax-highlighter/scripts/shBrushCss.js',
+        'delphi pascal pas		/plugins/syntax-highlighter/scripts/shBrushDelphi.js',
+        'diff patch			    /plugins/syntax-highlighter/scripts/shBrushDiff.js',
+        'erl erlang				/plugins/syntax-highlighter/scripts/shBrushErlang.js',
+        'groovy					/plugins/syntax-highlighter/scripts/shBrushGroovy.js',
+        'java					/plugins/syntax-highlighter/scripts/shBrushJava.js',
+        'jfx javafx				/plugins/syntax-highlighter/scripts/shBrushJavaFX.js',
+        'js jscript javascript	/plugins/syntax-highlighter/scripts/shBrushJScript.js',
+        'perl pl				/plugins/syntax-highlighter/scripts/shBrushPerl.js',
+        'php					/plugins/syntax-highlighter/scripts/shBrushPhp.js',
+        'text plain				/plugins/syntax-highlighter/scripts/shBrushPlain.js',
+        'powershell ps          /plugins/syntax-highlighter/scripts/shBrushPowerShell.js',
+        'py python				/plugins/syntax-highlighter/scripts/shBrushPython.js',
+        'ruby rails ror rb		/plugins/syntax-highlighter/scripts/shBrushRuby.js',
+        'sass scss              /plugins/syntax-highlighter/scripts/shBrushSass.js',
+        'scala					/plugins/syntax-highlighter/scripts/shBrushScala.js',
+        'sql					/plugins/syntax-highlighter/scripts/shBrushSql.js',
+        'vb vbnet				/plugins/syntax-highlighter/scripts/shBrushVb.js',
+        'xml xhtml xslt html	/plugins/syntax-highlighter/scripts/shBrushXml.js'
+    );
+    SyntaxHighlighter.defaults['auto-links'] = false;                 
+    SyntaxHighlighter.defaults['toolbar'] = false;     
+    SyntaxHighlighter.defaults['tab-size'] = 4;
+    SyntaxHighlighter.all();
+</script>
+<!-- END: Syntax Highlighter ComPress -->
+
+<script>
+var _hmt = _hmt || [];
+_js2load.push({src:"//hm.baidu.com/hm.js?509d4839538ac35b343eaa32d5a8f6f1"});
+</script>
+</body>
+</html>
+

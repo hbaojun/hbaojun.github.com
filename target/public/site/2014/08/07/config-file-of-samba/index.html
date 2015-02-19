@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="zh"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Samba配置文件 - 大宝自习室</title>
+  <meta name="author" content="hbaojun">
+  <meta name="baidu-site-verification" content="IlnJjhdGXL" />
+  <meta name="description" content="学习配置Samba的一些基本配置技巧">
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="OpooPressSiteRoot" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="Generator" content="OpooPress-1.1.1"/>
+  <meta name="Generated" content="2015-02-18T15:16:52+08:00"/>
+  <link rel="canonical" href="/2014/08/07/config-file-of-samba/">
+  
+  
+  <link href="/favicon.ico" rel="icon">
+  <link href="/atom.xml" rel="alternate" title="大宝自习室" type="application/atom+xml">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+  <link href="//fonts.useso.com/css?family=PT+Serif:regular,italic,bold,bolditalic|PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+  <!--[if lt IE 9]><script src="/javascripts/html5shiv.js"></script><![endif]-->
+</head>
+<body>
+  <!--[if lt IE 9]><script src="/javascripts/unsupported-browser.js"></script><![endif]-->
+  <header role="banner"><hgroup>
+  <h1><a href="/">大宝自习室</a></h1>
+    <h2>道路就在脚下</h2>
+</hgroup>
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+</ul>
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:http://hbaojun.eu.org" />
+    <input class="search" type="text" name="q" results="0" placeholder="搜索"/>
+  </fieldset>
+</form>
+
+<fieldset class="mobile-nav">
+  <select onchange="if (this.value) { window.location.href = this.value;}">
+    <option value="">导航&hellip;</option>
+    <option value="/">&raquo; 文章</option>
+    <option value="/archives/">&raquo; 归档</option>
+    <option value="/about/">&raquo; 关于</option>
+  </select>
+</fieldset>
+
+<ul class="main-navigation">
+<li><a href="/">文章</a></li>
+<li><a href="/archives/">归档</a></li>
+<li><a href="/about/">关于</a></li>
+</ul>
+</nav>
+  <div id="main">
+    <div id="content">
+<div>
+<article class="hentry" role="article">
+  <header>
+      <h1 class="entry-title">Samba配置文件</h1>
+
+      <p class="meta">
+		
+
+
+<time datetime="2014-08-07T12:00:00+08:00" pubdate>2014年08月07日</time>
+         | <a href="#ds-thread">评论</a>
+      </p>
+  </header>
+
+  <div class="entry-content"><p>前面的内容简单介绍了Samba简单的应用，适合从来没有接触过Samba(跟我一样)配置的同学。这篇博文就对Samba配置文件做一个简单的总结。</p>
+<!--more-->
+<p>其实,Samba服务器的配置是非常复杂的，因为要满足多种不同的需求，但通常所使用的配置还是比较简单的。刚安装完Samba服务器，打开/etc/samba/smb.conf文件可以看到大概如下的配置文件
+<img src="/images/samba_config_file.png" alt="Samba配置文件" align="middle"  /><br  />
+<strong>global配置</strong><br  /></p>
+<pre class="prettyprint">
+ [global]
+    ##工作组或者域
+    workgroup = C213   
+    ##主机名，在网络邻居中查看到的主机名称
+    netbios name = server  
+    ##Samba服务器的注释，可以添加"%v"来显示Samba服务器的版本号
+    server string = Samba server   
+    ##现在常用的两种安全级别,share已经被丢弃，如果直接将security注释，可以匿名访问
+    security = user/server   
+    ##使用server选项时配置的密码服务器(security=server),使用NetBios名称
+    ;password server = <NT-Server-Name>   
+    ##准许访问Samba服务器的网段地址等，也可以设置为具体IP地址的主机或者某个网域的主机访问
+    hosts allow = 192.168.1 192.  
+    ##有关共享打印的配置，一般用不上，注销后不能添加远程打印机
+    printcap name = /etc/printcap
+    load printers = yes  
+    ##日志文件,将日志文件分散成多个，方便查看日志，维护系统，其中‘%m'表示主机，
+    ##某一个主机访问Samba服务其，就生成其主机名为名称,log为后缀的日志文件，可以对该选项进行修改，
+    ##例如使用'%I'替换'%m',就是使用IP地址为名称
+    log file = /var/log/samba/%m.log
+    max log size = 50 ##日志文件最大不能超过50(Kb)  
+    ##登录密码是否加密及Samba用户密码文件位置，默认已经开启
+    encrypt passwords = yes
+    smb passwd file = /etc/samba/smbpasswd  
+    ##包含额外的Samba配置文件位置，可以利用'%I'选项或者’%m'选项来针对不同登录身份的用户设置不同权限
+    ##例如，‘%m’是针对不用的登录主机名，'%I'是针对不同的登录IP地址来区分，加载不同的配置文档
+    include=/etc/samba/smb.conf.%I  
+    ##指定提供Samba服务的网段，一般适用于多块网卡的服务器
+    interfaces = 192.168.4.53/24  
+    ##主机名解析顺序，wins服务器解析，客户机IP地址和主机名都保存在wins服务器上
+    ##lmhosts是本地文件，IP与主机名对应关系，bcast是广播局域网所有的主机,3个选项依序执行
+    name resolve order = wins lmhosts bcast  
+    ##上面一行配置使用了wins，下面wins服务器的配置相应打开
+    wins server = w.x.y.z  
+    ##是否做wins服务器，如果做wins服务器，Samba服务器上要保存本地局域网中客户机的主机名同IP
+    ##地址的对应关系
+    wins support = yes  
+    ##wins代理配置，默认是no;如果开启，局域网中至少需要一台wins服务器
+    ;wins proxy = yes  
+    ##设置Samba服务器是否通过dns服务器来查询NetBios名与IP地址
+    dns proxy = no  
+    ##允许主机访问的地址或者主机名等
+    hosts.allow = 192.168. EXCEPT 192.168.4.2  
+    ##禁止访问Samba服务器的IP地址或主机名等
+    hosts.deny = 192.168.3  
+    ##Windows中是否保持大小写的状态，这些是分享的基础,默认设置为no
+    ;preserve case = no
+    ;short preserve case = no  
+    ##默认字母小写和字母大小写敏感设置
+    default case = lower
+    case sensitive = no  
+</pre>
+<p>全局经常用到的选项上面基本上都涉及到了，生产为了满足实际的需求就需要灵活运用上述的全局配置和下面的文件共享配置部分，并且要时刻注意系统用户权限的设定。
+<strong>分享目录设置</strong>
+目录分享设置可以简单的分为用户home目录分享和用户设定目录分享。
+下面的描述块主要描述了用户home目录的分享设置</p>
+<pre class="prettyprint">
+[homes]
+   comment = Home Directories ##注释信息
+   ##共享是否可见,设置为no只会出现一个用户名的文件，如果为yes，则还会出现一个homes的文件夹
+   browseable = no
+   ##不可写
+   writable = no
+</pre>
+<p>在上面的字段中没有指定用户Home目录的路径信息，具体的可以看上面配置的相应注释。
+下面接着描述用户自定义的文件共享设置。</p>
+<pre class="prettyprint">
+ [doc_name] ##设定共享目录名称
+    path = /**           ##共享目录对应的路径
+    valid users = A B @C ## 合法访问Samba服务器的用户名和用户组C
+    public = yes|no      ##是否公开访问
+    read only = yes|no   ##是否只读
+    writable = yes|no    ##文件夹是否可写
+    read list =    ##读权限的用户列表
+    write list =   ##具有写权限的用户列表
+    hosts deny =   ##局部拒绝访问配置
+    hosts allow =  ##局部拒绝访问配置
+    create mode = 0770    ##指定创建文件的权限
+    directory mode = 0770 ##制定创建文件夹的权限
+</pre>
+<p><strong>共享打印服务</strong><br  />
+共享打印服务其实比较少使用，这里略过描述。</p>
+<p><strong>安全访问控制</strong>
+下面简单给出使用hosts来控制安全访问基本技巧，详细叙述如下：<br  /></p>
+<pre class="prettyprint">
+ [global] ##全局访问控制
+    hosts allow = ALL
+    hosts deny = 192.168.4.
+## 如果只看global两行配置，虽然有deny，但是deny的网段依然在allow中，
+## 所以所有的网段都可以访问Samba服务器  
+[doc name1] ##局部访问控制
+    hosts allow = 192.168.4.53
+    hosts deny = 192.168.4. 
+## 结合global和局部配置，同样都可以访问到Samba服务器。如果没有global中的host allow和deny配置，
+## 只根据局部配置,192.168.4.53的IP用户才能访问Samba服务器   
+[doc name2] ##局部访问控制 
+    hosts allow = 192.168.4. 
+    hosts deny = 192.168.4.5 
+## 上面局部hosts设定效果是失效的
+</pre>
+<p>上面的设定可以根据“允许优先”这个规则，只要包含在hosts allow中的，就可以访问共享目录。
+其中，hosts设定可以使用如下的内容:<br  /></p>
+<ol>
+<li>使用IP地址或者IP地址字段(192.168.4.5 192.168.4.)<br  /></li>
+<li>使用域名或主机名来限制，例如.arch.com arch 是匹配域名地址*.arch.com和arch主机<br  /></li>
+<li>使用统配符来设置，例如ALL, LOCAL, *, ?等<br  /></li>
+</ol>
+<p>对Samba服务器的所有介绍告一段落，这几天是边学习边摸索着进行，中间或许有纰漏的地方或者不尽如人意的地方，希望以后在实际应用中继续完善。<br  /></p>
+</div>
+  <footer>
+    <p class="meta">
+      <div style="font-size:80%">
+<div>
+<div align="center">希望本站内容对您有点用处,有什么疑问或建议请在后面留言评论</div>
+<div style="text-indent:2em;">若无特别注明，本站内容均属原创,转载请注明作者(<a href="http://hbaojun.eu.org">hbaojun</a>)和出处 <a href="http://hbaojun.eu.org/2014/08/07/config-file-of-samba/">大宝自习室</a> ，请勿用于任何商业用途。</div>
+<div style="text-indent:2em;">本文链接: <a href="http://hbaojun.eu.org/2014/08/07/config-file-of-samba/">http://hbaojun.eu.org/2014/08/07/config-file-of-samba/</a></div>
+</div><span class="byline author vcard">作者 <span class="fn">hbaojun</span></span>      
+
+
+<time datetime="2014-08-07T12:00:00+08:00" pubdate>2014年08月07日</time>
+      
+<span class="categories">属于 <a class="category" href="/category/linux/">Linux</a>
+ 分类</span>
+
+
+<span class="categories">被贴了 <a class="tag" href="/tag/linux/">Linux</a>, <a class="tag" href="/tag/samba/">Samba</a>, <a class="tag" href="/tag/pei-zhi/">配置</a>
+ 标签</span>
+</div>
+    </p>
+<div class="sharing">
+      <div class="bdsharebuttonbox"><a href="#" class="bds_more" data-cmd="more"></a><a title="分享到QQ空间" href="#" class="bds_qzone" data-cmd="qzone"></a><a title="分享到新浪微博" href="#" class="bds_tsina" data-cmd="tsina"></a><a title="分享到腾讯微博" href="#" class="bds_tqq" data-cmd="tqq"></a><a title="分享到人人网" href="#" class="bds_renren" data-cmd="renren"></a><a title="分享到微信" href="#" class="bds_weixin" data-cmd="weixin"></a></div>
+    <script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"16"},"share":{},"image":{"viewList":["qzone","tsina","tqq","renren","weixin"],"viewText":"分享到：","viewSize":"16"}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];</script>
+</div>
+<p>
+  <h2>相关文章</h2>
+  <ul id="related-posts-list">
+      <li class="post">
+        <a href="/2014/08/06/another-samba-config/">Samba配置续</a>
+        <div class="source right"><time datetime="2014-08-06T12:00:00">2014-08-06</time></div>
+      </li>
+      <li class="post">
+        <a href="/2014/08/05/samba/">Samba配置</a>
+        <div class="source right"><time datetime="2014-08-05T12:00:00">2014-08-05</time></div>
+      </li>
+      <li class="post">
+        <a href="/2014/04/18/some-config/">Linux的小技巧</a>
+        <div class="source right"><time datetime="2014-04-18T12:00:00">2014-04-18</time></div>
+      </li>
+      <li class="post">
+        <a href="/2014/03/08/some-config/">Linux的一些配置</a>
+        <div class="source right"><time datetime="2014-03-08T08:00:00">2014-03-08</time></div>
+      </li>
+      <li class="post">
+        <a href="/2014/04/13/install-kuaipan/">ArchLinux下安装快盘</a>
+        <div class="source right"><time datetime="2014-04-13T08:00:00">2014-04-13</time></div>
+      </li>
+  </ul>
+</p>    <p class="meta">
+        <a class="basic-alignment left" href="/2014/08/06/another-samba-config/" title="上一篇: Samba配置续">&laquo; Samba配置续</a>
+        <a class="basic-alignment right" href="/2014/12/27/learn-bash-program/" title="下一篇: Shell学习笔记">Shell学习笔记 &raquo;</a>
+    </p>
+  </footer>
+</article>
+  <section>
+    <h1>评论</h1>
+    <div id="ds-thread" class="ds-thread" data-thread-key="/2014/08/07/config-file-of-samba/" data-title="Samba配置文件"></div>
+  </section>
+</div>
+<aside class="sidebar">
+
+<section>
+  <h1>分类</h1>
+  <ul id="categories">
+	<li class="category"><a href="/category/xin-xi-an-quan/">信息安全</a><span class="count right">8</span>
+	</li>
+	<li class="category"><a href="/category/linux/">Linux</a><span class="count right">19</span>
+	</li>
+	<li class="category"><a href="/category/xue-xi/">学习</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/gong-zuo/">工作</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/ming-ling-xing/">命令行</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/sheng-huo/">生活</a><span class="count right">6</span>
+	</li>
+	<li class="category"><a href="/category/python/">python</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/c/c/">C/C++</a><span class="count right">4</span>
+	</li>
+	<li class="category"><a href="/category/gui/">GUI</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/tu-xing-jie-mian/">图形界面</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/jekyll/">Jekyll</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/pkcs7/">PKCS#7</a><span class="count right">2</span>
+	</li>
+	<li class="category"><a href="/category/java/">Java</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/javacard/">JavaCard</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/she-ji-mo-shi/">设计模式</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/bian-ma/">编码</a><span class="count right">1</span>
+	</li>
+  </ul>
+</section>
+<section>
+  <h1>近期文章</h1>
+  <ul id="recent_posts">
+  
+  
+      <li class="post">
+        <a href="/2015/01/09/2015-1-9-google-chrome-install/">Kali安装google Chrome</a>
+      </li>
+      <li class="post">
+        <a href="/2015/01/09/2015-1-9-Kali-install-pick/">Kali安装小记</a>
+      </li>
+      <li class="post">
+        <a href="/2015/01/08/2015-1-8-xterm-font-pick/">Kali中xterm字体设置</a>
+      </li>
+      <li class="post">
+        <a href="/2014/12/27/learn-bash-program/">Shell学习笔记</a>
+      </li>
+      <li class="post">
+        <a href="/2014/08/07/config-file-of-samba/">Samba配置文件</a>
+      </li>
+  </ul>
+</section>
+<section>
+  <h1>标签</h1>
+  <ul id="tags">
+	<li class="tag"><span><a href="/tag/linux/">Linux</a></span><span class="count">12</span></li>
+	<li class="tag"><span><a href="/tag/xin-xi-an-quan/">信息安全</a></span><span class="count">10</span></li>
+	<li class="tag"><span><a href="/tag/ssl/">SSL</a></span><span class="count">5</span></li>
+	<li class="tag"><span><a href="/tag/tls/">TLS</a></span><span class="count">5</span></li>
+	<li class="tag"><span><a href="/tag/sheng-huo/">生活</a></span><span class="count">4</span></li>
+	<li class="tag"><span><a href="/tag/java/">Java</a></span><span class="count">4</span></li>
+	<li class="tag"><span><a href="/tag/gnu/">GNU</a></span><span class="count">4</span></li>
+	<li class="tag"><span><a href="/tag/kali/">Kali</a></span><span class="count">3</span></li>
+	<li class="tag"><span><a href="/tag/pei-zhi/">配置</a></span><span class="count">3</span></li>
+	<li class="tag"><span><a href="/tag/za-cou-han-shu/">杂凑函数</a></span><span class="count">3</span></li>
+	<li class="tag"><span><a href="/tag/wang-luo-an-quan/">网络安全</a></span><span class="count">3</span></li>
+	<li class="tag"><span><a href="/tag/samba/">Samba</a></span><span class="count">3</span></li>
+	<li class="tag"><span><a href="/tag/xue-jia/">学驾</a></span><span class="count">2</span></li>
+	<li class="tag"><span><a href="/tag/java-card/">Java Card</a></span><span class="count">2</span></li>
+	<li class="tag"><span><a href="/tag/pkcs7/">PKCS#7</a></span><span class="count">2</span></li>
+	<li class="tag"><span><a href="/tag/gong-xiang/">共享</a></span><span class="count">2</span></li>
+	<li class="tag"><span><a href="/tag/shu-zi-xin-feng/">数字信封</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/bian-ma/">编码</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/zi-fu/">字符</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/sheng-cheng-qi-mo-shi/">生成器模式</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/jian-zao-zhe-mo-shi/">建造者模式</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/she-ji-mo-shi/">设计模式</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/cap/">CAP</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/bo-ke/">博客</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/github/">github</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/jekyll/">Jekyll</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/xterm/">XTerm</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/xterm/">xterm</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/google-chrome/">google chrome</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/ru-men/">入门</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/shell/">Shell</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/pydev/">PyDev</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/python/">python</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/eclipse/">eclipse</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/ri-zhi/">日志</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/di-yi-pian-md-ri-zhi/">第一篇md日志</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/md/">md</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/pkcs12/">PKCS12</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/mplayer/">Mplayer</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/kuai-pan/">快盘</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/x.509/">X.509</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/shu-zi-zheng-shu/">数字证书</a></span><span class="count">1</span></li>
+  </ul>
+</section>
+<section>
+<h1>最新评论</h1>
+<!-- 多说最新评论 start -->
+	<div class="ds-recent-comments" data-num-items="5" data-show-avatars="1" data-show-time="1" data-show-title="1" data-show-admin="1" data-excerpt-length="70"></div>
+<!-- 多说最新评论 end -->
+<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"hbaojun"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- 多说公共JS代码 end -->
+</section>
+<section>
+<h1>新浪微博秀</h1>
+<iframe id="sina_widget_1310686285" style="width:100%; height:500px;" frameborder="0" scrolling="no" src="http://v.t.sina.com.cn/widget/widget_blog.php?uid=1310686285&height=500&skin=wd_01&showpic=1"></iframe>
+</section><section>
+<h1>来访者</h1>
+<script type="text/javascript" src="//rj.revolvermaps.com/0/0/6.js?i=9m23haujkxl&amp;m=0&amp;s=220&amp;c=ff0000&amp;cr1=ffffff&amp;f=arial&amp;l=1&amp;hi=10" async="async"></script>
+</section>
+<div id="totop" style="position:fixed;bottom:150px;right:50px;cursor: pointer;">
+<a title='返回顶部'><img src="/images/scrollup.png"/></a>
+</div></aside>
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  版权所有 &copy; 2015 - hbaojun -
+  <span class="credit">Powered by <a href="http://www.opoopress.com/">OpooPress</a>&nbsp;  <script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1,254,411,363'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s19.cnzz.com/z_stat.php%3Fid%3D1,254,411,363%26show%3Dpic' type='text/javascript'%3E%3C/script%3E"));</script>
+</span>
+</p>
+</footer>
+<script type="text/javascript" src="/javascripts/opoopress.min.js"></script>
+<script type="text/javascript" src="/javascripts/totop.js"></script>
+<script language="JavaScript">
+<!--
+    window.OpooPress = new OpooPressApp({siteUrl:'http://hbaojun.eu.org',rootUrl:'',pageUrl:'/2014/08/07/config-file-of-samba/',title:'Samba配置文件',refreshRelativeTimes:true,verbose:false},{});
+    OpooPress.init();
+
+
+var duoshuoQuery = {short_name:"hbaojun"};
+(function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = 'http://static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(ds);
+})();
+//-->
+</script>
+
+
+<script>
+var _hmt = _hmt || [];
+_js2load.push({src:"//hm.baidu.com/hm.js?509d4839538ac35b343eaa32d5a8f6f1"});
+</script>
+</body>
+</html>
+
