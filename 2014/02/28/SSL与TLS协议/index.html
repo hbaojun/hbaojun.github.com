@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="zh"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>SSL与TLS协议 - 大宝自习室</title>
+  <meta name="author" content="hbaojun">
+  <meta name="baidu-site-verification" content="IlnJjhdGXL" />
+  <meta name="description" content="学习总结SSL协议与TLS协议">
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="OpooPressSiteRoot" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="Generator" content="OpooPress-1.1.1"/>
+  <meta name="Generated" content="2015-02-18T15:16:52+08:00"/>
+  <link rel="canonical" href="/2014/02/28/SSL与TLS协议/">
+  
+  
+  <link href="/favicon.ico" rel="icon">
+  <link href="/atom.xml" rel="alternate" title="大宝自习室" type="application/atom+xml">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+  <link href="//fonts.useso.com/css?family=PT+Serif:regular,italic,bold,bolditalic|PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+  <!--[if lt IE 9]><script src="/javascripts/html5shiv.js"></script><![endif]-->
+</head>
+<body>
+  <!--[if lt IE 9]><script src="/javascripts/unsupported-browser.js"></script><![endif]-->
+  <header role="banner"><hgroup>
+  <h1><a href="/">大宝自习室</a></h1>
+    <h2>道路就在脚下</h2>
+</hgroup>
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+</ul>
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:http://hbaojun.eu.org" />
+    <input class="search" type="text" name="q" results="0" placeholder="搜索"/>
+  </fieldset>
+</form>
+
+<fieldset class="mobile-nav">
+  <select onchange="if (this.value) { window.location.href = this.value;}">
+    <option value="">导航&hellip;</option>
+    <option value="/">&raquo; 文章</option>
+    <option value="/archives/">&raquo; 归档</option>
+    <option value="/about/">&raquo; 关于</option>
+  </select>
+</fieldset>
+
+<ul class="main-navigation">
+<li><a href="/">文章</a></li>
+<li><a href="/archives/">归档</a></li>
+<li><a href="/about/">关于</a></li>
+</ul>
+</nav>
+  <div id="main">
+    <div id="content">
+<div>
+<article class="hentry" role="article">
+  <header>
+      <h1 class="entry-title">SSL与TLS协议</h1>
+
+      <p class="meta">
+		
+
+
+<time datetime="2014-02-28T08:00:00+08:00" pubdate>2014年02月28日</time>
+         | <a href="#ds-thread">评论</a>
+      </p>
+  </header>
+
+  <div class="entry-content"><p><img src="/images/https.png" alt="SSL/TLS" /></p>
+<h2>历史背景</h2>
+<p>(1)<strong>SSL</strong><br  />
+&emsp;SSL全称是Secure Socket Layer，安全套接层。是网景公司(NetScape)所研发，用来保障互联网数据传输安全及数据完整性的的网络安全协议。SSL经历3个版本，现在最新的版本为SSL 3.0。</p>
+<!--more-->
+<p>1994年，网景公司制定了SSL 1.0版本，但并未对外发布。同年制定了更新的版本V 2.0并对外发布。1995年，网景公司发布了SSL V3.0版本。<br  />
+(2)<strong>TLS</strong><br  />
+&emsp;TLS全称Transport Layer Security，传输层安全。TLS是IETF将SSL作了标准化，发布的标准文档即RFC2246。从技术层面上讲，TLS1.0与SSL V3.0的差别非常微小。在2006年，IETF发布了rfc4492,文档中制定了ECC在TLS中使用的标准，并且在其他标准文档中规定了额外的使用细则(rfc7027文档),如所使用的椭圆曲线参数及参数的长度等。<br  />
+&emsp;现在最新的TLS版本是2008年发布的TLS 1.2版。在2009年9月21日布宜诺斯艾利斯举行的Ekoparty安全会议上，安全研究人员Thai Duong和Juliano Rizzo将演示针对SSL/TLS的概念验证攻击。该协议漏洞主要影响TLS协议1.0版及SSL所有版本，TLS 1.1及1.2版本不受影响。黑客能够利用该协议漏洞悄悄破译Web服务器和终端用户浏览器之间传输的加密数据。</p>
+<h2>SSL和TLS协议</h2>
+<p>&emsp;最初人们在设计SSL协议的时候，主要是针对WEB安全设计的，包括WEB、电子邮件及新闻组等。设计的初衷就需要SSL能够与WEB所主要使用的Http协议能够很好的协同工作。现阶段SSL/TLS使用最广泛的莫过于Https。只要登录各大银行网站、电子商务网站、网上支付网站，在浏览器的地址栏都可以看到普通的Http变成了Https。<br  />
+<img src="/images/ICBC.png" alt="工商银行网上银行登录界面" /><br  />
+&emsp;还有些地方SSL/TLS使用的比较隐蔽，可能无法通过上面的地址栏查看到，例如某地一卡通网络充值平台项目。都是通过SSL/TLS协议来保证在不安全的网络信道上传输敏感数据，从而保证这些数据没被窃取和篡改。<br  />
+<strong>2.1 SSL/TLS协议简单介绍</strong><br  />
+&emsp;SSL/TLS协议运行在TCP协议之上，在应用层数据写到下层数据包之前，SSL/TLS协议会将敏感数据进行加密处理，对外提供安全透明的安全服务。<br  />
+<img src="/images/SSL.png" alt="SSL/TLS在协议栈中的位置" align="middle"><br  />
+&emsp;一般情况，SSL/TLS需要在TCP协议上运行，而不能直接在UDP和IP协议上运行。它并且假定数据在传输过程中是可靠的，不会出现丢包和重复发送等情况。</p>
+<p><strong>2.2 协议流程</strong><br  />
+&emsp;SSL/TLS协议连接分为两个阶段：握手阶段和数据传输阶段。<br  />
+握手阶段:对服务器进行认证并协商确立用于保护数据传输加密的秘钥，在数据传输阶段之前完成。<br  />
+数据传输阶段:客户端与服务器端之间交互的数据，都是通过握手阶段协商的加密秘钥来进行加密之后，然后打包成数据包在网络上传递给对方。<img src="/images/shakehand.png" alt="握手流程" /></p>
+<p><strong>握手流程</strong><br  />
+1.<strong>Client Hello</strong><br  />
+&emsp;客户端要同服务器端连接，首先要发送一条Client Hello的消息给服务器端，其中包括的内容如下：</p>
+<pre class="prettyprint">
+1. 协议版本号
+2. 32bit时间戳
+3. 客户端产生的随机数
+4. 回话标识
+5. 密码算法套件
+6. 支持的压缩算法
+</pre>
+<p>详细解释如下:<br  /></p>
+<blockquote><ol>
+<li>对协议版本号，提供客户端能够支持的最新的版本号，并且是向下兼容；</li>
+<li>32bit时间戳是从1970.01.01(00:00:00 GMT)开始计时的总秒数；<br  /></li>
+<li>产生随机数是客户端自己产生的随机数，用来协商数据传输阶段的回话秘钥；<br  /></li>
+<li>回话标识，若用户想要开启一个新的回话时，该字段为空；若客户端要恢复某个曾经的回话，这个时候需要传递待恢复回话的SessionID;<br  /></li>
+<li>密码算法套件是客户端所支持的所有算法标识。一般按照客户端最想执行的算法的顺序来排列。密码算法套件为密码交换定义了密码算法，包含分组加密算法的秘钥长度及消息验证码；<br  /></li>
+<li>压缩算法，是用户传输数据时客户端所支持的压缩算法，一般情况为空。<br  /></li>
+</ol>
+</blockquote>
+<p>2.<strong>服务器Hello过程</strong><br  />
+<strong>1.  Server Hello</strong>
+&emsp;Server Hello是服务器端接收到客户端Client Hello后的响应。响应的内容包括对Client Hello中对应内容的回应，具体内容如下:<br  /></p>
+<pre class="prettyprint">
+1. 选择使用的协议版本号
+2. 32bit时间戳
+3. 服务器产生的随机数
+4. 回话标识
+5. 服务器选择的密码算法套件
+6. 服务器选择的压缩算法
+</pre>
+<p>&emsp;详细解释如下:<br  /></p>
+<blockquote><ol>
+<li>服务器选择所使用的SSL/TLS协议版本号，是服务器支持最高的版本号和Client Hello中版本号之间低的那个；<br  /></li>
+<li>同Client Hello中时间戳类似；<br  /></li>
+<li>服务器产生的随机数;<br  /></li>
+<li>回话标识，若Client Hello中提供的会话标识能够被识别利用，则短握手协议将运行，这时的回话标识就是Client Hello中传送来的回话标识；否则服务器端将生成一个新的回话标识，并且使用新的SessionID填充；<br  /></li>
+<li>服务器选择的密码套件，为每一个必要的密码操作都选择了单一的密码算法，并将结果告知给客户端；<br  /></li>
+<li>服务器选择的压缩算法;<br  /></li>
+</ol>
+</blockquote>
+<p><strong>2.  Server Cerificate</strong><br  />
+&emsp;服务器证书，当握手过程需要认证服务器时，服务器需要将自己的证书传递给客户端，通常证书的格式是X.509 V3证书。客户端通过验证证书的合法性来判定服务器的身份。<br  />
+<strong>3.  erver KeyExchange</strong><br  />
+&emsp;这个消息是对上面消息的补充。当Server Cerificate中没有包含足够多的预设主密钥信息，服务器端再发送这个消息给客户端；<br  />
+<strong>4.  Certificate Request</strong><br  />
+&emsp;在发送上述消息后，如服务器需要对客户端的身份进行认证，对客户进行访问控制。服务器一般会发送这个消息给客户端，该消息中一般会包括服务器接收的证书类型和服务器信任的证书签发机构等信息；<br  />
+<strong>5.  Server Hello Done</strong><br  />
+&emsp;该消息主要作用是提示客户端服务器端的Hello过程结束，客户端需要立马对服务器端发送过来的消息进行验证运算，进而准备下一流程。<br  /></p>
+<p>3.<strong>秘钥交换</strong><br  />
+<strong>1. Client Certificate</strong><br  />
+&emsp;若客户端接收到Certificate Request消息，客户端在这个过程首先会发送自己的数字证书给服务器端，近以验证客户端自己的身份；<br  />
+<strong>2. Client KeyExchange</strong><br  />
+&emsp;客户端会将pre-masterKey经加密处理后发送给服务器端;<br  />
+<strong>3. Certificate Verify</strong><br  />
+&emsp;若客户端发送了一个证书给服务器端，一般来说，客户端也将发送一个Certificate Verify消息给服务器端；<br  />
+<strong>4. Change Cipher Spec</strong><br  />
+&emsp;通知服务器端后来的通讯启用刚刚协商的安全参数，即上述握手过程中的密钥交换、认证及压缩算法等。
+最后，客户端将发送一个Finished给服务器端，通知这个过程结束，进行下一流程。<br  /></p>
+<p>4.<strong>握手结束</strong><br  />
+<strong>1. Change Cipher Spec</strong><br  />
+&emsp;服务器通知服务器启用新的安全参数，并且告知对方服务器成功执行了秘钥生成过程；<br  />
+<strong>2. Finished</strong><br  />
+&emsp;是第一条使用新的加密参数进行加密的消息，它使得能够确认没有任何消息被攻击者篡改过。<br  />
+<strong>异常</strong><br  />
+&emsp;若发生任何异常或者警告错误，服务器端将会发送警告信息。由2个字节组成，一个字节说明是警告警报还是致命错误警报，另一个字节说明错误细节。<br  /></p>
+<h2>SSL和TLS安全保障</h2>
+<p>&emsp;从第2部分中的描述，只能知道SSL/TLS协议的大概过程。但是它能过提供的安全保障还是可以简单分析一下的。<br  />
+<strong>1.身份认证</strong><br  />
+&emsp;在握手阶段，一般情况服务器需要将自己的数字证书发送给客户端。同时，服务器端要验证客户端身份的时候也会向客户端发送一个证书请求。以此过程，协议双方都获取了对方的数字证书，并且双方都可以验证该证书的合法性。因此，双方都可以对彼此的身份进行认证，只有在满足身份认证通过之后才能进行下面的流程。<br  /></p>
+<p><strong>2.通讯保密</strong><br  />
+&emsp;握手阶段，两方参与者都产生自己的随机数，并且将随机数传送给对方。双方在每一次正式会话前，将双方最新产生的两个随机数及其他参数作为输入，按照一定的密码算法产生双方的回话密钥。在后续双方回话过程中，交流的所有信息都是经过加密和MAC处理的数据。在外部传输的信息都是以密文的形式进行传输，攻击者难以攻击获取每次回话密钥而获取传输的信息。并且在消息中附带消息验证码，攻击者篡改消息后，消息的接收方能立即发现消息被篡改。</p>
+<p><strong>3.安全要求</strong><br  />
+&emsp;通讯双方每次回话都会产生新的回话密钥，从时间纵向来看，即使攻击者获取某次的回话密钥，攻击者也仅仅只能解密出这次通讯的消息内容。但是以前和以后的加密消息，攻击者一样无法解密出来，保证了通讯过程的前向保密性。</p>
+</div>
+  <footer>
+    <p class="meta">
+      <div style="font-size:80%">
+<div>
+<div align="center">希望本站内容对您有点用处,有什么疑问或建议请在后面留言评论</div>
+<div style="text-indent:2em;">若无特别注明，本站内容均属原创,转载请注明作者(<a href="http://hbaojun.eu.org">hbaojun</a>)和出处 <a href="http://hbaojun.eu.org/2014/02/28/SSL与TLS协议/">大宝自习室</a> ，请勿用于任何商业用途。</div>
+<div style="text-indent:2em;">本文链接: <a href="http://hbaojun.eu.org/2014/02/28/SSL与TLS协议/">http://hbaojun.eu.org/2014/02/28/SSL与TLS协议/</a></div>
+</div><span class="byline author vcard">作者 <span class="fn">hbaojun</span></span>      
+
+
+<time datetime="2014-02-28T08:00:00+08:00" pubdate>2014年02月28日</time>
+      
+<span class="categories">属于 <a class="category" href="/category/xin-xi-an-quan/">信息安全</a>
+ 分类</span>
+
+
+<span class="categories">被贴了 <a class="tag" href="/tag/ssl/">SSL</a>, <a class="tag" href="/tag/tls/">TLS</a>, <a class="tag" href="/tag/xin-xi-an-quan/">信息安全</a>
+ 标签</span>
+</div>
+    </p>
+<div class="sharing">
+      <div class="bdsharebuttonbox"><a href="#" class="bds_more" data-cmd="more"></a><a title="分享到QQ空间" href="#" class="bds_qzone" data-cmd="qzone"></a><a title="分享到新浪微博" href="#" class="bds_tsina" data-cmd="tsina"></a><a title="分享到腾讯微博" href="#" class="bds_tqq" data-cmd="tqq"></a><a title="分享到人人网" href="#" class="bds_renren" data-cmd="renren"></a><a title="分享到微信" href="#" class="bds_weixin" data-cmd="weixin"></a></div>
+    <script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"16"},"share":{},"image":{"viewList":["qzone","tsina","tqq","renren","weixin"],"viewText":"分享到：","viewSize":"16"}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];</script>
+</div>
+<p>
+  <h2>相关文章</h2>
+  <ul id="related-posts-list">
+      <li class="post">
+        <a href="/2014/03/19/polarssl-ssl-cache/">PolarSSL之SSL Cache实现</a>
+        <div class="source right"><time datetime="2014-03-19T12:00:00">2014-03-19</time></div>
+      </li>
+      <li class="post">
+        <a href="/2014/03/16/md-of-polarssl-1/">PolarSSL之杂凑算法(一)</a>
+        <div class="source right"><time datetime="2014-03-16T08:00:00">2014-03-16</time></div>
+      </li>
+      <li class="post">
+        <a href="/2014/03/16/md-of-polarssl-2/">PolarSSL之杂凑算法(二)</a>
+        <div class="source right"><time datetime="2014-03-16T12:00:00">2014-03-16</time></div>
+      </li>
+      <li class="post">
+        <a href="/2014/03/16/analysis-of-polarssl/">杂凑函数简单介绍</a>
+        <div class="source right"><time datetime="2014-03-16T08:00:00">2014-03-16</time></div>
+      </li>
+      <li class="post">
+        <a href="/2014/03/02/Certificate/">数字证书</a>
+        <div class="source right"><time datetime="2014-03-02T08:00:00">2014-03-02</time></div>
+      </li>
+  </ul>
+</p>    <p class="meta">
+        <a class="basic-alignment left" href="/2014/02/27/字符编码小结/" title="上一篇: 字符编码小结">&laquo; 字符编码小结</a>
+        <a class="basic-alignment right" href="/2014/03/02/Certificate/" title="下一篇: 数字证书">数字证书 &raquo;</a>
+    </p>
+  </footer>
+</article>
+  <section>
+    <h1>评论</h1>
+    <div id="ds-thread" class="ds-thread" data-thread-key="/2014/02/28/SSL与TLS协议/" data-title="SSL与TLS协议"></div>
+  </section>
+</div>
+<aside class="sidebar">
+
+<section>
+  <h1>分类</h1>
+  <ul id="categories">
+	<li class="category"><a href="/category/xin-xi-an-quan/">信息安全</a><span class="count right">8</span>
+	</li>
+	<li class="category"><a href="/category/linux/">Linux</a><span class="count right">19</span>
+	</li>
+	<li class="category"><a href="/category/xue-xi/">学习</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/gong-zuo/">工作</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/ming-ling-xing/">命令行</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/sheng-huo/">生活</a><span class="count right">6</span>
+	</li>
+	<li class="category"><a href="/category/python/">python</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/c/c/">C/C++</a><span class="count right">4</span>
+	</li>
+	<li class="category"><a href="/category/gui/">GUI</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/tu-xing-jie-mian/">图形界面</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/jekyll/">Jekyll</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/pkcs7/">PKCS#7</a><span class="count right">2</span>
+	</li>
+	<li class="category"><a href="/category/java/">Java</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/javacard/">JavaCard</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/she-ji-mo-shi/">设计模式</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/bian-ma/">编码</a><span class="count right">1</span>
+	</li>
+  </ul>
+</section>
+<section>
+  <h1>近期文章</h1>
+  <ul id="recent_posts">
+  
+  
+      <li class="post">
+        <a href="/2015/01/09/2015-1-9-google-chrome-install/">Kali安装google Chrome</a>
+      </li>
+      <li class="post">
+        <a href="/2015/01/09/2015-1-9-Kali-install-pick/">Kali安装小记</a>
+      </li>
+      <li class="post">
+        <a href="/2015/01/08/2015-1-8-xterm-font-pick/">Kali中xterm字体设置</a>
+      </li>
+      <li class="post">
+        <a href="/2014/12/27/learn-bash-program/">Shell学习笔记</a>
+      </li>
+      <li class="post">
+        <a href="/2014/08/07/config-file-of-samba/">Samba配置文件</a>
+      </li>
+  </ul>
+</section>
+<section>
+  <h1>标签</h1>
+  <ul id="tags">
+	<li class="tag"><span><a href="/tag/linux/">Linux</a></span><span class="count">12</span></li>
+	<li class="tag"><span><a href="/tag/xin-xi-an-quan/">信息安全</a></span><span class="count">10</span></li>
+	<li class="tag"><span><a href="/tag/ssl/">SSL</a></span><span class="count">5</span></li>
+	<li class="tag"><span><a href="/tag/tls/">TLS</a></span><span class="count">5</span></li>
+	<li class="tag"><span><a href="/tag/sheng-huo/">生活</a></span><span class="count">4</span></li>
+	<li class="tag"><span><a href="/tag/java/">Java</a></span><span class="count">4</span></li>
+	<li class="tag"><span><a href="/tag/gnu/">GNU</a></span><span class="count">4</span></li>
+	<li class="tag"><span><a href="/tag/kali/">Kali</a></span><span class="count">3</span></li>
+	<li class="tag"><span><a href="/tag/pei-zhi/">配置</a></span><span class="count">3</span></li>
+	<li class="tag"><span><a href="/tag/za-cou-han-shu/">杂凑函数</a></span><span class="count">3</span></li>
+	<li class="tag"><span><a href="/tag/wang-luo-an-quan/">网络安全</a></span><span class="count">3</span></li>
+	<li class="tag"><span><a href="/tag/samba/">Samba</a></span><span class="count">3</span></li>
+	<li class="tag"><span><a href="/tag/xue-jia/">学驾</a></span><span class="count">2</span></li>
+	<li class="tag"><span><a href="/tag/java-card/">Java Card</a></span><span class="count">2</span></li>
+	<li class="tag"><span><a href="/tag/pkcs7/">PKCS#7</a></span><span class="count">2</span></li>
+	<li class="tag"><span><a href="/tag/gong-xiang/">共享</a></span><span class="count">2</span></li>
+	<li class="tag"><span><a href="/tag/shu-zi-xin-feng/">数字信封</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/bian-ma/">编码</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/zi-fu/">字符</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/sheng-cheng-qi-mo-shi/">生成器模式</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/jian-zao-zhe-mo-shi/">建造者模式</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/she-ji-mo-shi/">设计模式</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/cap/">CAP</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/bo-ke/">博客</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/github/">github</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/jekyll/">Jekyll</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/xterm/">XTerm</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/xterm/">xterm</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/google-chrome/">google chrome</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/ru-men/">入门</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/shell/">Shell</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/pydev/">PyDev</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/python/">python</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/eclipse/">eclipse</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/ri-zhi/">日志</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/di-yi-pian-md-ri-zhi/">第一篇md日志</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/md/">md</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/pkcs12/">PKCS12</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/mplayer/">Mplayer</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/kuai-pan/">快盘</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/x.509/">X.509</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/shu-zi-zheng-shu/">数字证书</a></span><span class="count">1</span></li>
+  </ul>
+</section>
+<section>
+<h1>最新评论</h1>
+<!-- 多说最新评论 start -->
+	<div class="ds-recent-comments" data-num-items="5" data-show-avatars="1" data-show-time="1" data-show-title="1" data-show-admin="1" data-excerpt-length="70"></div>
+<!-- 多说最新评论 end -->
+<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"hbaojun"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- 多说公共JS代码 end -->
+</section>
+<section>
+<h1>新浪微博秀</h1>
+<iframe id="sina_widget_1310686285" style="width:100%; height:500px;" frameborder="0" scrolling="no" src="http://v.t.sina.com.cn/widget/widget_blog.php?uid=1310686285&height=500&skin=wd_01&showpic=1"></iframe>
+</section><section>
+<h1>来访者</h1>
+<script type="text/javascript" src="//rj.revolvermaps.com/0/0/6.js?i=9m23haujkxl&amp;m=0&amp;s=220&amp;c=ff0000&amp;cr1=ffffff&amp;f=arial&amp;l=1&amp;hi=10" async="async"></script>
+</section>
+<div id="totop" style="position:fixed;bottom:150px;right:50px;cursor: pointer;">
+<a title='返回顶部'><img src="/images/scrollup.png"/></a>
+</div></aside>
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  版权所有 &copy; 2015 - hbaojun -
+  <span class="credit">Powered by <a href="http://www.opoopress.com/">OpooPress</a>&nbsp;  <script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1,254,411,363'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s19.cnzz.com/z_stat.php%3Fid%3D1,254,411,363%26show%3Dpic' type='text/javascript'%3E%3C/script%3E"));</script>
+</span>
+</p>
+</footer>
+<script type="text/javascript" src="/javascripts/opoopress.min.js"></script>
+<script type="text/javascript" src="/javascripts/totop.js"></script>
+<script language="JavaScript">
+<!--
+    window.OpooPress = new OpooPressApp({siteUrl:'http://hbaojun.eu.org',rootUrl:'',pageUrl:'/2014/02/28/SSL与TLS协议/',title:'SSL与TLS协议',refreshRelativeTimes:true,verbose:false},{});
+    OpooPress.init();
+
+
+var duoshuoQuery = {short_name:"hbaojun"};
+(function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = 'http://static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(ds);
+})();
+//-->
+</script>
+
+
+<script>
+var _hmt = _hmt || [];
+_js2load.push({src:"//hm.baidu.com/hm.js?509d4839538ac35b343eaa32d5a8f6f1"});
+</script>
+</body>
+</html>
+

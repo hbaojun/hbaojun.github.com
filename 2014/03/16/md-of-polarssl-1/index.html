@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="zh"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>PolarSSL之杂凑算法(一) - 大宝自习室</title>
+  <meta name="author" content="hbaojun">
+  <meta name="baidu-site-verification" content="IlnJjhdGXL" />
+  <meta name="description" content="学习记录PolarSSL源代码文件">
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="OpooPressSiteRoot" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="Generator" content="OpooPress-1.1.1"/>
+  <meta name="Generated" content="2015-02-18T15:16:52+08:00"/>
+  <link rel="canonical" href="/2014/03/16/md-of-polarssl-1/">
+  
+  
+  <link href="/favicon.ico" rel="icon">
+  <link href="/atom.xml" rel="alternate" title="大宝自习室" type="application/atom+xml">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+  <link href="//fonts.useso.com/css?family=PT+Serif:regular,italic,bold,bolditalic|PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+  <!--[if lt IE 9]><script src="/javascripts/html5shiv.js"></script><![endif]-->
+</head>
+<body>
+  <!--[if lt IE 9]><script src="/javascripts/unsupported-browser.js"></script><![endif]-->
+  <header role="banner"><hgroup>
+  <h1><a href="/">大宝自习室</a></h1>
+    <h2>道路就在脚下</h2>
+</hgroup>
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+</ul>
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:http://hbaojun.eu.org" />
+    <input class="search" type="text" name="q" results="0" placeholder="搜索"/>
+  </fieldset>
+</form>
+
+<fieldset class="mobile-nav">
+  <select onchange="if (this.value) { window.location.href = this.value;}">
+    <option value="">导航&hellip;</option>
+    <option value="/">&raquo; 文章</option>
+    <option value="/archives/">&raquo; 归档</option>
+    <option value="/about/">&raquo; 关于</option>
+  </select>
+</fieldset>
+
+<ul class="main-navigation">
+<li><a href="/">文章</a></li>
+<li><a href="/archives/">归档</a></li>
+<li><a href="/about/">关于</a></li>
+</ul>
+</nav>
+  <div id="main">
+    <div id="content">
+<div>
+<article class="hentry" role="article">
+  <header>
+      <h1 class="entry-title">PolarSSL之杂凑算法(一)</h1>
+
+      <p class="meta">
+		
+
+
+<time datetime="2014-03-16T08:00:00+08:00" pubdate>2014年03月16日</time>
+         | <a href="#ds-thread">评论</a>
+      </p>
+  </header>
+
+  <div class="entry-content"><p>在上面的一篇博客中，我简单总结介绍了一下杂凑函数的基本知识。从这一篇博客开始，需要对PolarSSL中哈希函数的实现来概要分析。
+首先的问题是在PolarSSL库中实现了多少种杂凑函数？从md.h文件中可以看到如下的代码:</p>
+<!--more-->
+<pre class="prettyprint">
+typedef enum {
+    POLARSSL_MD_NONE=0,
+    POLARSSL_MD_MD2,
+    POLARSSL_MD_MD4,
+    POLARSSL_MD_MD5,
+    POLARSSL_MD_SHA1,
+    POLARSSL_MD_SHA224,
+    POLARSSL_MD_SHA256,
+    POLARSSL_MD_SHA384,
+    POLARSSL_MD_SHA512,
+    POLARSSL_MD_RIPEMD160,
+} md_type_t;
+</pre>
+<p>这是一个枚举类型，其中定义的算法类型为10种(其中一种为空).而对于每一种杂凑算法的实现都是大同小异，下文就以SHA1这个例子来说明。</p>
+<p>首先看sha1.h头文件:<br  /></p>
+<pre class="prettyprint">
+typedef struct
+{
+    uint32_t total[2];          // number of bytes processed
+    uint32_t state[5];          // intermediate digest state
+    unsigned char buffer[64];    // data block being processed
+    unsigned char ipad[64];      // HMAC: inner padding
+    unsigned char opad[64];      // HMAC: outer padding
+} sha1_context;
+</pre>
+<p>对每一个杂凑算法，都定义了一个hash_context的上下文结构体。其中主要包含计算的字符串长度，上下文杂凑函数的处理状态，每次处理字符串的缓存及HMAC所用到的内部填充和外部填充。也有某些杂凑算法的结构体中包含另外一个成员变量，例如在sha512_context中，有is384的整型变量。它的作用就是用来决定这个杂凑算法最终返回的哈希值的长度，sha512算法有可能返回384bit，也有可能返回512bit。</p>
+<p>下面继续有关sha1的所有实现的函数:<br  /></p>
+<pre class="prettyprint">
+// 初始化上下文
+void sha1_starts( sha1_context *ctx ); 
+// 添加要处理的字符串input, 长度为ilen
+void sha1_update( sha1_context *ctx, const unsigned char *input, size_t ilen ); 
+// 计算得到最终的哈希值output, 长度为20字节
+void sha1_finish( sha1_context *ctx, unsigned char output[20] ); 
+// sha1内部处理一个单元的过程
+void sha1_process( sha1_context *ctx, const unsigned char data[64] );
+</pre>
+<p>上述的几个函数主要是对sha1算法细化实现，达到高的复用的目的。下面的2个函数直接调用上面的几个函数，直接对外提供计算摘要值的API，方便调用，屏蔽了算法实现的诸多复杂调用。<br  /></p>
+<pre class="prettyprint">
+// 调用上面的函数，直接计算input字符串的摘要值
+void sha1( const unsigned char *input, size_t ilen, unsigned char output[20] ); 
+// 对输入path路径的文件计算摘要值
+int sha1_file( const char *path, unsigned char output[20] );
+</pre>     
+<p>下面的5个函数主要用来计算HMAC.计算HMAC时，不仅需要字符串的输入，而且还需要额外的秘钥。秘钥的长度一般不短于该摘要算法哈希值的长度，在这个例子中即key的长度不短于20个字节。若key的长度大于杂凑函数每次处理的单元，可以先将key计算其哈希值，然后来计算HMAC。具体的标准实现可以参看<a href="http://www.cse.ohio-state.edu/cgi-bin/rfc/rfc2104.html">RFC2104&ndash;HMAC</a>文档.<br  /></p>
+<pre class="prettyprint">
+// 输入key，初始化HMAC上下文
+void sha1_hmac_starts( sha1_context *ctx, const unsigned char *key, size_t keylen ); 
+// 输入待计算字符串及长度，更新上下文状态
+void sha1_hmac_update( sha1_context *ctx, const unsigned char *input, size_t ilen );
+// 从上下文中的信息，最终计算返回HMAC值
+void sha1_hmac_finish( sha1_context *ctx, unsigned char output[20] ); 
+// 将上下文信息复位
+void sha1_hmac_reset( sha1_context *ctx ); 
+// 调用上述的几个函数，直接输入key和字符串，直接返回其HMAC值
+void sha1_hmac( const unsigned char *key, size_t keylen,
+                 const unsigned char *input, size_t ilen, 
+                 unsigned char output[20] );
+</pre>    
+<p>最后有一个函数，是对上述函数的一些测试，保证代码的正确，这个就赘述了。<br  /></p>
+<pre class="prettyprint">
+int sha1_self_test( int verbose );
+</pre>
+</div>
+  <footer>
+    <p class="meta">
+      <div style="font-size:80%">
+<div>
+<div align="center">希望本站内容对您有点用处,有什么疑问或建议请在后面留言评论</div>
+<div style="text-indent:2em;">若无特别注明，本站内容均属原创,转载请注明作者(<a href="http://hbaojun.eu.org">hbaojun</a>)和出处 <a href="http://hbaojun.eu.org/2014/03/16/md-of-polarssl-1/">大宝自习室</a> ，请勿用于任何商业用途。</div>
+<div style="text-indent:2em;">本文链接: <a href="http://hbaojun.eu.org/2014/03/16/md-of-polarssl-1/">http://hbaojun.eu.org/2014/03/16/md-of-polarssl-1/</a></div>
+</div><span class="byline author vcard">作者 <span class="fn">hbaojun</span></span>      
+
+
+<time datetime="2014-03-16T08:00:00+08:00" pubdate>2014年03月16日</time>
+      
+<span class="categories">属于 <a class="category" href="/category/xin-xi-an-quan/">信息安全</a>
+ 分类</span>
+
+
+<span class="categories">被贴了 <a class="tag" href="/tag/tls/">TLS</a>, <a class="tag" href="/tag/ssl/">SSL</a>, <a class="tag" href="/tag/xin-xi-an-quan/">信息安全</a>, <a class="tag" href="/tag/wang-luo-an-quan/">网络安全</a>, <a class="tag" href="/tag/za-cou-han-shu/">杂凑函数</a>
+ 标签</span>
+</div>
+    </p>
+<div class="sharing">
+      <div class="bdsharebuttonbox"><a href="#" class="bds_more" data-cmd="more"></a><a title="分享到QQ空间" href="#" class="bds_qzone" data-cmd="qzone"></a><a title="分享到新浪微博" href="#" class="bds_tsina" data-cmd="tsina"></a><a title="分享到腾讯微博" href="#" class="bds_tqq" data-cmd="tqq"></a><a title="分享到人人网" href="#" class="bds_renren" data-cmd="renren"></a><a title="分享到微信" href="#" class="bds_weixin" data-cmd="weixin"></a></div>
+    <script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"16"},"share":{},"image":{"viewList":["qzone","tsina","tqq","renren","weixin"],"viewText":"分享到：","viewSize":"16"}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];</script>
+</div>
+<p>
+  <h2>相关文章</h2>
+  <ul id="related-posts-list">
+      <li class="post">
+        <a href="/2014/03/16/md-of-polarssl-2/">PolarSSL之杂凑算法(二)</a>
+        <div class="source right"><time datetime="2014-03-16T12:00:00">2014-03-16</time></div>
+      </li>
+      <li class="post">
+        <a href="/2014/03/19/polarssl-ssl-cache/">PolarSSL之SSL Cache实现</a>
+        <div class="source right"><time datetime="2014-03-19T12:00:00">2014-03-19</time></div>
+      </li>
+      <li class="post">
+        <a href="/2014/03/16/analysis-of-polarssl/">杂凑函数简单介绍</a>
+        <div class="source right"><time datetime="2014-03-16T08:00:00">2014-03-16</time></div>
+      </li>
+      <li class="post">
+        <a href="/2014/02/28/SSL与TLS协议/">SSL与TLS协议</a>
+        <div class="source right"><time datetime="2014-02-28T08:00:00">2014-02-28</time></div>
+      </li>
+      <li class="post">
+        <a href="/2014/03/02/Certificate/">数字证书</a>
+        <div class="source right"><time datetime="2014-03-02T08:00:00">2014-03-02</time></div>
+      </li>
+  </ul>
+</p>    <p class="meta">
+        <a class="basic-alignment left" href="/2014/03/08/some-config/" title="上一篇: Linux的一些配置">&laquo; Linux的一些配置</a>
+        <a class="basic-alignment right" href="/2014/03/16/analysis-of-polarssl/" title="下一篇: 杂凑函数简单介绍">杂凑函数简单介绍 &raquo;</a>
+    </p>
+  </footer>
+</article>
+  <section>
+    <h1>评论</h1>
+    <div id="ds-thread" class="ds-thread" data-thread-key="/2014/03/16/md-of-polarssl-1/" data-title="PolarSSL之杂凑算法(一)"></div>
+  </section>
+</div>
+<aside class="sidebar">
+
+<section>
+  <h1>分类</h1>
+  <ul id="categories">
+	<li class="category"><a href="/category/xin-xi-an-quan/">信息安全</a><span class="count right">8</span>
+	</li>
+	<li class="category"><a href="/category/linux/">Linux</a><span class="count right">19</span>
+	</li>
+	<li class="category"><a href="/category/xue-xi/">学习</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/gong-zuo/">工作</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/ming-ling-xing/">命令行</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/sheng-huo/">生活</a><span class="count right">6</span>
+	</li>
+	<li class="category"><a href="/category/python/">python</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/c/c/">C/C++</a><span class="count right">4</span>
+	</li>
+	<li class="category"><a href="/category/gui/">GUI</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/tu-xing-jie-mian/">图形界面</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/jekyll/">Jekyll</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/pkcs7/">PKCS#7</a><span class="count right">2</span>
+	</li>
+	<li class="category"><a href="/category/java/">Java</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/javacard/">JavaCard</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/she-ji-mo-shi/">设计模式</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/bian-ma/">编码</a><span class="count right">1</span>
+	</li>
+  </ul>
+</section>
+<section>
+  <h1>近期文章</h1>
+  <ul id="recent_posts">
+  
+  
+      <li class="post">
+        <a href="/2015/01/09/2015-1-9-google-chrome-install/">Kali安装google Chrome</a>
+      </li>
+      <li class="post">
+        <a href="/2015/01/09/2015-1-9-Kali-install-pick/">Kali安装小记</a>
+      </li>
+      <li class="post">
+        <a href="/2015/01/08/2015-1-8-xterm-font-pick/">Kali中xterm字体设置</a>
+      </li>
+      <li class="post">
+        <a href="/2014/12/27/learn-bash-program/">Shell学习笔记</a>
+      </li>
+      <li class="post">
+        <a href="/2014/08/07/config-file-of-samba/">Samba配置文件</a>
+      </li>
+  </ul>
+</section>
+<section>
+  <h1>标签</h1>
+  <ul id="tags">
+	<li class="tag"><span><a href="/tag/linux/">Linux</a></span><span class="count">12</span></li>
+	<li class="tag"><span><a href="/tag/xin-xi-an-quan/">信息安全</a></span><span class="count">10</span></li>
+	<li class="tag"><span><a href="/tag/ssl/">SSL</a></span><span class="count">5</span></li>
+	<li class="tag"><span><a href="/tag/tls/">TLS</a></span><span class="count">5</span></li>
+	<li class="tag"><span><a href="/tag/sheng-huo/">生活</a></span><span class="count">4</span></li>
+	<li class="tag"><span><a href="/tag/java/">Java</a></span><span class="count">4</span></li>
+	<li class="tag"><span><a href="/tag/gnu/">GNU</a></span><span class="count">4</span></li>
+	<li class="tag"><span><a href="/tag/kali/">Kali</a></span><span class="count">3</span></li>
+	<li class="tag"><span><a href="/tag/pei-zhi/">配置</a></span><span class="count">3</span></li>
+	<li class="tag"><span><a href="/tag/za-cou-han-shu/">杂凑函数</a></span><span class="count">3</span></li>
+	<li class="tag"><span><a href="/tag/wang-luo-an-quan/">网络安全</a></span><span class="count">3</span></li>
+	<li class="tag"><span><a href="/tag/samba/">Samba</a></span><span class="count">3</span></li>
+	<li class="tag"><span><a href="/tag/xue-jia/">学驾</a></span><span class="count">2</span></li>
+	<li class="tag"><span><a href="/tag/java-card/">Java Card</a></span><span class="count">2</span></li>
+	<li class="tag"><span><a href="/tag/pkcs7/">PKCS#7</a></span><span class="count">2</span></li>
+	<li class="tag"><span><a href="/tag/gong-xiang/">共享</a></span><span class="count">2</span></li>
+	<li class="tag"><span><a href="/tag/shu-zi-xin-feng/">数字信封</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/bian-ma/">编码</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/zi-fu/">字符</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/sheng-cheng-qi-mo-shi/">生成器模式</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/jian-zao-zhe-mo-shi/">建造者模式</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/she-ji-mo-shi/">设计模式</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/cap/">CAP</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/bo-ke/">博客</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/github/">github</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/jekyll/">Jekyll</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/xterm/">XTerm</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/xterm/">xterm</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/google-chrome/">google chrome</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/ru-men/">入门</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/shell/">Shell</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/pydev/">PyDev</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/python/">python</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/eclipse/">eclipse</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/ri-zhi/">日志</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/di-yi-pian-md-ri-zhi/">第一篇md日志</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/md/">md</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/pkcs12/">PKCS12</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/mplayer/">Mplayer</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/kuai-pan/">快盘</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/x.509/">X.509</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/shu-zi-zheng-shu/">数字证书</a></span><span class="count">1</span></li>
+  </ul>
+</section>
+<section>
+<h1>最新评论</h1>
+<!-- 多说最新评论 start -->
+	<div class="ds-recent-comments" data-num-items="5" data-show-avatars="1" data-show-time="1" data-show-title="1" data-show-admin="1" data-excerpt-length="70"></div>
+<!-- 多说最新评论 end -->
+<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"hbaojun"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- 多说公共JS代码 end -->
+</section>
+<section>
+<h1>新浪微博秀</h1>
+<iframe id="sina_widget_1310686285" style="width:100%; height:500px;" frameborder="0" scrolling="no" src="http://v.t.sina.com.cn/widget/widget_blog.php?uid=1310686285&height=500&skin=wd_01&showpic=1"></iframe>
+</section><section>
+<h1>来访者</h1>
+<script type="text/javascript" src="//rj.revolvermaps.com/0/0/6.js?i=9m23haujkxl&amp;m=0&amp;s=220&amp;c=ff0000&amp;cr1=ffffff&amp;f=arial&amp;l=1&amp;hi=10" async="async"></script>
+</section>
+<div id="totop" style="position:fixed;bottom:150px;right:50px;cursor: pointer;">
+<a title='返回顶部'><img src="/images/scrollup.png"/></a>
+</div></aside>
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  版权所有 &copy; 2015 - hbaojun -
+  <span class="credit">Powered by <a href="http://www.opoopress.com/">OpooPress</a>&nbsp;  <script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1,254,411,363'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s19.cnzz.com/z_stat.php%3Fid%3D1,254,411,363%26show%3Dpic' type='text/javascript'%3E%3C/script%3E"));</script>
+</span>
+</p>
+</footer>
+<script type="text/javascript" src="/javascripts/opoopress.min.js"></script>
+<script type="text/javascript" src="/javascripts/totop.js"></script>
+<script language="JavaScript">
+<!--
+    window.OpooPress = new OpooPressApp({siteUrl:'http://hbaojun.eu.org',rootUrl:'',pageUrl:'/2014/03/16/md-of-polarssl-1/',title:'PolarSSL之杂凑算法(一)',refreshRelativeTimes:true,verbose:false},{});
+    OpooPress.init();
+
+
+var duoshuoQuery = {short_name:"hbaojun"};
+(function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = 'http://static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(ds);
+})();
+//-->
+</script>
+
+
+<script>
+var _hmt = _hmt || [];
+_js2load.push({src:"//hm.baidu.com/hm.js?509d4839538ac35b343eaa32d5a8f6f1"});
+</script>
+</body>
+</html>
+

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="zh"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>JavaCard 简介 - 大宝自习室</title>
+  <meta name="author" content="hbaojun">
+  <meta name="baidu-site-verification" content="IlnJjhdGXL" />
+  
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="OpooPressSiteRoot" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="Generator" content="OpooPress-1.1.1"/>
+  <meta name="Generated" content="2015-02-18T15:16:52+08:00"/>
+  <link rel="canonical" href="/2014/01/15/JavaCard简介/">
+  
+  
+  <link href="/favicon.ico" rel="icon">
+  <link href="/atom.xml" rel="alternate" title="大宝自习室" type="application/atom+xml">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+  <link href="//fonts.useso.com/css?family=PT+Serif:regular,italic,bold,bolditalic|PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+  <!--[if lt IE 9]><script src="/javascripts/html5shiv.js"></script><![endif]-->
+</head>
+<body>
+  <!--[if lt IE 9]><script src="/javascripts/unsupported-browser.js"></script><![endif]-->
+  <header role="banner"><hgroup>
+  <h1><a href="/">大宝自习室</a></h1>
+    <h2>道路就在脚下</h2>
+</hgroup>
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+</ul>
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:http://hbaojun.eu.org" />
+    <input class="search" type="text" name="q" results="0" placeholder="搜索"/>
+  </fieldset>
+</form>
+
+<fieldset class="mobile-nav">
+  <select onchange="if (this.value) { window.location.href = this.value;}">
+    <option value="">导航&hellip;</option>
+    <option value="/">&raquo; 文章</option>
+    <option value="/archives/">&raquo; 归档</option>
+    <option value="/about/">&raquo; 关于</option>
+  </select>
+</fieldset>
+
+<ul class="main-navigation">
+<li><a href="/">文章</a></li>
+<li><a href="/archives/">归档</a></li>
+<li><a href="/about/">关于</a></li>
+</ul>
+</nav>
+  <div id="main">
+    <div id="content">
+<div>
+<article class="hentry" role="article">
+  <header>
+      <h1 class="entry-title">JavaCard 简介</h1>
+
+      <p class="meta">
+		
+
+
+<time datetime="2014-01-15T12:00:00+08:00" pubdate>2014年01月15日</time>
+         | <a href="#ds-thread">评论</a>
+      </p>
+  </header>
+
+  <div class="entry-content"><h3>Java 历史</h3>
+<p>1991年，Sun公司的由James Gosling，Bill Joe等人组成的Green小组开发了一个名为Oak的软件，开发它的目的是用于电视等家用电器的嵌入式应用.在这之后，Oak发展成了当今的Java语言。伴随着近年来互联网迅猛的发展，Java语言逐渐成为最重要的网络编程语言之一。</p>
+<!--more-->
+<h3>Java Card的产生</h3>
+<p>在1995年后，SUN公司专门成立了JavaSoft部门来推广Java在各个领域的应用。
+1996年10月，Schlumberger提出Java Card 1.0标准，但是它只包含API协议。
+1997年，智能卡业的两巨头Schlumberger和Gemplus表示支持Java智能卡并联合成立了Java智能卡论坛（JavaCard Forum），随后，其它大的智能卡公司如Bull CP8 Transa等也表示支持Java智能卡并参加到这个论坛中来。论坛成立的目的就是根据厂商们的意见来完善Java Card API技术规范。
+1997年，第一张运用了Java Card技术的智能卡发布。</p>
+<p>Java Card规范
+Java Card技术规范主要由3个部分组成，Java Card虚拟机(JCVM)、Java Card运行环境(JCRE)、Java Card应用编程接口(JC API).
+Java Card虚拟机(JCVM)
+JCVM是一般JVM的子集。它负责对Applet进行执行并返回执行的结果。JCVM存在于智能卡中，因此其不能占用过多的空间。
+JCVM的生存周期是卡的生存周期，即使卡被拔出。在卡没有电源供应的时候，持续记忆的技术(ROM,EEPROM)可以保证卡在失去电源的情况下，其内部的信息不会丢失。当再次插入读卡器中供电之后，JCVM能够从(ROM,EEPROM)中重新恢复。</p>
+<p>Java Card运行环境(JCRE)
+JCRE规范定义了智能卡运行时的行为。它定义了JCVM的生命周期，Java Card Applet的生命周期，及其中install,select等方法的执行规范，通讯的逻辑通道及应用的选择。</p>
+<p>Java Card AIP
+Java Card API是传统Java语言API很小的一个子集。
+<strong>不支持特性</strong></p>
+<p>语言特性不支持: 动态类装载、安全管理、多线程、对象克隆等不支持；</p>
+<p>关键字不支持: 不支持native、synchronized、transient、volatile、strictfp关键字；</p>
+<p>不支持类型: 不支持char、double、float、long及多维数组;</p>
+<p>不支持类和接口:仅支持Object、Throwable部分方法，其他Java核心应用编程类和接口都不支持;</p>
+<p>异常: 仅支持在Java Card平台中使用到的异常，其他Exception和Error子类多被精简。</p>
+<p>Java Card特点
+通用性
+Java Card Applet符合通用标准后，能够在不同的芯片JCVM上运行。需要添加应用时，只需要将应用下载到卡片内即可，系统扩展性强。
+安全性强
+Java Card研发的初衷就是为了保护智能卡中核心敏感的信息。Java Card规范中规定了系统运行的安全需求，对卡内信息读取、写入和操作都有严格的权限限制。非法用户无法通过欺骗操作获取私密信息和进行超越权限的操作。</p>
+</div>
+  <footer>
+    <p class="meta">
+      <div style="font-size:80%">
+<div>
+<div align="center">希望本站内容对您有点用处,有什么疑问或建议请在后面留言评论</div>
+<div style="text-indent:2em;">若无特别注明，本站内容均属原创,转载请注明作者(<a href="http://hbaojun.eu.org">hbaojun</a>)和出处 <a href="http://hbaojun.eu.org/2014/01/15/JavaCard简介/">大宝自习室</a> ，请勿用于任何商业用途。</div>
+<div style="text-indent:2em;">本文链接: <a href="http://hbaojun.eu.org/2014/01/15/JavaCard简介/">http://hbaojun.eu.org/2014/01/15/JavaCard简介/</a></div>
+</div><span class="byline author vcard">作者 <span class="fn">hbaojun</span></span>      
+
+
+<time datetime="2014-01-15T12:00:00+08:00" pubdate>2014年01月15日</time>
+      
+<span class="categories">属于 <a class="category" href="/category/java/">Java</a>
+ 分类</span>
+
+
+<span class="categories">被贴了 <a class="tag" href="/tag/java/">Java</a>, <a class="tag" href="/tag/java-card/">Java Card</a>, <a class="tag" href="/tag/xin-xi-an-quan/">信息安全</a>
+ 标签</span>
+</div>
+    </p>
+<div class="sharing">
+      <div class="bdsharebuttonbox"><a href="#" class="bds_more" data-cmd="more"></a><a title="分享到QQ空间" href="#" class="bds_qzone" data-cmd="qzone"></a><a title="分享到新浪微博" href="#" class="bds_tsina" data-cmd="tsina"></a><a title="分享到腾讯微博" href="#" class="bds_tqq" data-cmd="tqq"></a><a title="分享到人人网" href="#" class="bds_renren" data-cmd="renren"></a><a title="分享到微信" href="#" class="bds_weixin" data-cmd="weixin"></a></div>
+    <script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"16"},"share":{},"image":{"viewList":["qzone","tsina","tqq","renren","weixin"],"viewText":"分享到：","viewSize":"16"}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];</script>
+</div>
+<p>
+  <h2>相关文章</h2>
+  <ul id="related-posts-list">
+      <li class="post">
+        <a href="/2014/01/21/CAP之类组件/">CAP文件之类组件分析</a>
+        <div class="source right"><time datetime="2014-01-21T12:00:00">2014-01-21</time></div>
+      </li>
+      <li class="post">
+        <a href="/2013/05/08/PKCS12结构-1/">PKCS12结构-1</a>
+        <div class="source right"><time datetime="2013-05-08T08:00:00">2013-05-08</time></div>
+      </li>
+      <li class="post">
+        <a href="/2014/02/18/PKCS7结构分析之签名/">PKCS#7结构分析之签名</a>
+        <div class="source right"><time datetime="2014-02-18T08:00:00">2014-02-18</time></div>
+      </li>
+      <li class="post">
+        <a href="/2014/02/19/PKCS7结构分析之数字信封/">PKCS#7结构分析之数字信封</a>
+        <div class="source right"><time datetime="2014-02-19T12:00:00">2014-02-19</time></div>
+      </li>
+      <li class="post">
+        <a href="/2014/02/28/SSL与TLS协议/">SSL与TLS协议</a>
+        <div class="source right"><time datetime="2014-02-28T08:00:00">2014-02-28</time></div>
+      </li>
+  </ul>
+</p>    <p class="meta">
+        <a class="basic-alignment left" href="/2013/05/08/PKCS12结构-1/" title="上一篇: PKCS12结构-1">&laquo; PKCS12结构-1</a>
+        <a class="basic-alignment right" href="/2014/01/19/Jekyll博客的配置/" title="下一篇: Jekyll博客的配置">Jekyll博客的配置 &raquo;</a>
+    </p>
+  </footer>
+</article>
+  <section>
+    <h1>评论</h1>
+    <div id="ds-thread" class="ds-thread" data-thread-key="/2014/01/15/JavaCard简介/" data-title="JavaCard 简介"></div>
+  </section>
+</div>
+<aside class="sidebar">
+
+<section>
+  <h1>分类</h1>
+  <ul id="categories">
+	<li class="category"><a href="/category/xin-xi-an-quan/">信息安全</a><span class="count right">8</span>
+	</li>
+	<li class="category"><a href="/category/linux/">Linux</a><span class="count right">19</span>
+	</li>
+	<li class="category"><a href="/category/xue-xi/">学习</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/gong-zuo/">工作</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/ming-ling-xing/">命令行</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/sheng-huo/">生活</a><span class="count right">6</span>
+	</li>
+	<li class="category"><a href="/category/python/">python</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/c/c/">C/C++</a><span class="count right">4</span>
+	</li>
+	<li class="category"><a href="/category/gui/">GUI</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/tu-xing-jie-mian/">图形界面</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/jekyll/">Jekyll</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/pkcs7/">PKCS#7</a><span class="count right">2</span>
+	</li>
+	<li class="category"><a href="/category/java/">Java</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/javacard/">JavaCard</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/she-ji-mo-shi/">设计模式</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/bian-ma/">编码</a><span class="count right">1</span>
+	</li>
+  </ul>
+</section>
+<section>
+  <h1>近期文章</h1>
+  <ul id="recent_posts">
+  
+  
+      <li class="post">
+        <a href="/2015/01/09/2015-1-9-google-chrome-install/">Kali安装google Chrome</a>
+      </li>
+      <li class="post">
+        <a href="/2015/01/09/2015-1-9-Kali-install-pick/">Kali安装小记</a>
+      </li>
+      <li class="post">
+        <a href="/2015/01/08/2015-1-8-xterm-font-pick/">Kali中xterm字体设置</a>
+      </li>
+      <li class="post">
+        <a href="/2014/12/27/learn-bash-program/">Shell学习笔记</a>
+      </li>
+      <li class="post">
+        <a href="/2014/08/07/config-file-of-samba/">Samba配置文件</a>
+      </li>
+  </ul>
+</section>
+<section>
+  <h1>标签</h1>
+  <ul id="tags">
+	<li class="tag"><span><a href="/tag/linux/">Linux</a></span><span class="count">12</span></li>
+	<li class="tag"><span><a href="/tag/xin-xi-an-quan/">信息安全</a></span><span class="count">10</span></li>
+	<li class="tag"><span><a href="/tag/ssl/">SSL</a></span><span class="count">5</span></li>
+	<li class="tag"><span><a href="/tag/tls/">TLS</a></span><span class="count">5</span></li>
+	<li class="tag"><span><a href="/tag/sheng-huo/">生活</a></span><span class="count">4</span></li>
+	<li class="tag"><span><a href="/tag/java/">Java</a></span><span class="count">4</span></li>
+	<li class="tag"><span><a href="/tag/gnu/">GNU</a></span><span class="count">4</span></li>
+	<li class="tag"><span><a href="/tag/kali/">Kali</a></span><span class="count">3</span></li>
+	<li class="tag"><span><a href="/tag/pei-zhi/">配置</a></span><span class="count">3</span></li>
+	<li class="tag"><span><a href="/tag/za-cou-han-shu/">杂凑函数</a></span><span class="count">3</span></li>
+	<li class="tag"><span><a href="/tag/wang-luo-an-quan/">网络安全</a></span><span class="count">3</span></li>
+	<li class="tag"><span><a href="/tag/samba/">Samba</a></span><span class="count">3</span></li>
+	<li class="tag"><span><a href="/tag/xue-jia/">学驾</a></span><span class="count">2</span></li>
+	<li class="tag"><span><a href="/tag/java-card/">Java Card</a></span><span class="count">2</span></li>
+	<li class="tag"><span><a href="/tag/pkcs7/">PKCS#7</a></span><span class="count">2</span></li>
+	<li class="tag"><span><a href="/tag/gong-xiang/">共享</a></span><span class="count">2</span></li>
+	<li class="tag"><span><a href="/tag/shu-zi-xin-feng/">数字信封</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/bian-ma/">编码</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/zi-fu/">字符</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/sheng-cheng-qi-mo-shi/">生成器模式</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/jian-zao-zhe-mo-shi/">建造者模式</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/she-ji-mo-shi/">设计模式</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/cap/">CAP</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/bo-ke/">博客</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/github/">github</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/jekyll/">Jekyll</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/xterm/">XTerm</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/xterm/">xterm</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/google-chrome/">google chrome</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/ru-men/">入门</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/shell/">Shell</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/pydev/">PyDev</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/python/">python</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/eclipse/">eclipse</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/ri-zhi/">日志</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/di-yi-pian-md-ri-zhi/">第一篇md日志</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/md/">md</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/pkcs12/">PKCS12</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/mplayer/">Mplayer</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/kuai-pan/">快盘</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/x.509/">X.509</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/shu-zi-zheng-shu/">数字证书</a></span><span class="count">1</span></li>
+  </ul>
+</section>
+<section>
+<h1>最新评论</h1>
+<!-- 多说最新评论 start -->
+	<div class="ds-recent-comments" data-num-items="5" data-show-avatars="1" data-show-time="1" data-show-title="1" data-show-admin="1" data-excerpt-length="70"></div>
+<!-- 多说最新评论 end -->
+<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"hbaojun"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- 多说公共JS代码 end -->
+</section>
+<section>
+<h1>新浪微博秀</h1>
+<iframe id="sina_widget_1310686285" style="width:100%; height:500px;" frameborder="0" scrolling="no" src="http://v.t.sina.com.cn/widget/widget_blog.php?uid=1310686285&height=500&skin=wd_01&showpic=1"></iframe>
+</section><section>
+<h1>来访者</h1>
+<script type="text/javascript" src="//rj.revolvermaps.com/0/0/6.js?i=9m23haujkxl&amp;m=0&amp;s=220&amp;c=ff0000&amp;cr1=ffffff&amp;f=arial&amp;l=1&amp;hi=10" async="async"></script>
+</section>
+<div id="totop" style="position:fixed;bottom:150px;right:50px;cursor: pointer;">
+<a title='返回顶部'><img src="/images/scrollup.png"/></a>
+</div></aside>
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  版权所有 &copy; 2015 - hbaojun -
+  <span class="credit">Powered by <a href="http://www.opoopress.com/">OpooPress</a>&nbsp;  <script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1,254,411,363'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s19.cnzz.com/z_stat.php%3Fid%3D1,254,411,363%26show%3Dpic' type='text/javascript'%3E%3C/script%3E"));</script>
+</span>
+</p>
+</footer>
+<script type="text/javascript" src="/javascripts/opoopress.min.js"></script>
+<script type="text/javascript" src="/javascripts/totop.js"></script>
+<script language="JavaScript">
+<!--
+    window.OpooPress = new OpooPressApp({siteUrl:'http://hbaojun.eu.org',rootUrl:'',pageUrl:'/2014/01/15/JavaCard简介/',title:'JavaCard 简介',refreshRelativeTimes:true,verbose:false},{});
+    OpooPress.init();
+
+
+var duoshuoQuery = {short_name:"hbaojun"};
+(function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = 'http://static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(ds);
+})();
+//-->
+</script>
+
+
+<script>
+var _hmt = _hmt || [];
+_js2load.push({src:"//hm.baidu.com/hm.js?509d4839538ac35b343eaa32d5a8f6f1"});
+</script>
+</body>
+</html>
+

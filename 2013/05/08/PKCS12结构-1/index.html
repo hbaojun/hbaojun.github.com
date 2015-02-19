@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="zh"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>PKCS12结构-1 - 大宝自习室</title>
+  <meta name="author" content="hbaojun">
+  <meta name="baidu-site-verification" content="IlnJjhdGXL" />
+  <meta name="description" content="PKCS12是RSA公司制定的行业标准，现在最新的标准为v1.1。是针对个人信息交换的结构标准，基于ASN.1语法结构。包含私钥、证书、混杂的私密消息及扩展组成。由于ASN.1语法结构是平台无关性，继而PKCS12能够在多平台、多设备上使用，具有很强的通用性。有关PKCS#12的文档在RSA试验室可以直接下到，本文主要结合BouncyCastle开源库来了解PKCS#12结构的实现。">
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="OpooPressSiteRoot" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="Generator" content="OpooPress-1.1.1"/>
+  <meta name="Generated" content="2015-02-18T15:16:52+08:00"/>
+  <link rel="canonical" href="/2013/05/08/PKCS12结构-1/">
+  
+  
+  <link href="/favicon.ico" rel="icon">
+  <link href="/atom.xml" rel="alternate" title="大宝自习室" type="application/atom+xml">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+  <link href="//fonts.useso.com/css?family=PT+Serif:regular,italic,bold,bolditalic|PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+  <link type="text/css" rel="stylesheet" href="/plugins/syntax-highlighter/styles/shCoreDefault.css"/>
+  <!--[if lt IE 9]><script src="/javascripts/html5shiv.js"></script><![endif]-->
+</head>
+<body>
+  <!--[if lt IE 9]><script src="/javascripts/unsupported-browser.js"></script><![endif]-->
+  <header role="banner"><hgroup>
+  <h1><a href="/">大宝自习室</a></h1>
+    <h2>道路就在脚下</h2>
+</hgroup>
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+</ul>
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:http://hbaojun.eu.org" />
+    <input class="search" type="text" name="q" results="0" placeholder="搜索"/>
+  </fieldset>
+</form>
+
+<fieldset class="mobile-nav">
+  <select onchange="if (this.value) { window.location.href = this.value;}">
+    <option value="">导航&hellip;</option>
+    <option value="/">&raquo; 文章</option>
+    <option value="/archives/">&raquo; 归档</option>
+    <option value="/about/">&raquo; 关于</option>
+  </select>
+</fieldset>
+
+<ul class="main-navigation">
+<li><a href="/">文章</a></li>
+<li><a href="/archives/">归档</a></li>
+<li><a href="/about/">关于</a></li>
+</ul>
+</nav>
+  <div id="main">
+    <div id="content">
+<div>
+<article class="hentry" role="article">
+  <header>
+      <h1 class="entry-title">PKCS12结构-1</h1>
+
+      <p class="meta">
+		
+
+
+<time datetime="2013-05-08T08:00:00+08:00" pubdate>2013年05月08日</time>
+         | <a href="#ds-thread">评论</a>
+      </p>
+  </header>
+
+  <div class="entry-content"><h4>PKCS#12简单介绍</h4>
+<p>最新版本的PKCS#12标准文档出版在2012年，由RSA实验室制定。由于PKCS#12是个人信息交换结构，其中包含有个人安全的关键信息，其组织的ASN.1结构较为复杂，所以在了解PKCS#12之前首先要知道ASN.1结构、BER\DER、X.509证书、CRL列表等等知识。</p>
+<!--more-->
+<p>首先我们来简单认识一下PKCS#12。PKCS#12证书结构的后缀名一般为.pfx和.p12,使用EJBCA或者OpenSSL都可以产生PKCS#12,一般是基于1024bit RSA算法的。产生后的PKCS#12结构可以导入到系统中，用于邮件的签名和加密(需要使用到邮件客户端，如OutLook Express、OutLook等)。需要用到加密，所以PKCS#12中必须包含用户的私钥。而保护结构中私钥的一般方式是设置口令。将PKCS#12导入到容器中、并且提取其中的私钥是需要验证用户设置的口令是否正确。</p>
+<h4>PKCS#12的ASN.1结构</h4>
+<pre>
+<code>PKCS#12整体结构:
+PFX ::= SEQUENCE {
+version    INTEGER {v3(3)}(v3,...),     //版本号,默认为v3
+authSafe   ContentInfo,                 //PKCS#7结构消息
+macData    MacData OPTIONAL             //mac数据，可选
+}</code>
+</pre>
+<p>其中version默认为v3，对应代码结构：</p>
+<pre class='brush:java'>BC库中定义的Pfx结构:
+public class Pfx extends ASN1Object implements PKCSObjectIdentifiers
+{
+    private ContentInfo             contentInfo;
+    private MacData                 macData = null;
+    //其他代码省略
+}
+</pre><pre>
+<code>Mac数据段结构(可选):
+MacData ::= SEQUENCE {
+mac        DigestInfo,
+macSalt    OCTET STRING,
+iterations INTEGER DEFAULT 1
+-- Note: The default is for historical reasons and its use is deprecated.
+}</code>
+</pre>
+<p>MacData是一个Sequence，因此在改结构段中可能存在多个该类型的数据结构。</p>
+<pre>
+<code>public class MacData extends ASN1Object
+{
+private static final BigInteger ONE = BigInteger.valueOf(1);
+DigestInfo   digInfo;
+byte[]       salt;
+BigInteger   iterationCount;
+//其他代码省略
+}</code>
+</pre>
+<pre>
+*首先*我们来看看 mac  DigestInfo这个对象
+<code>DigestInfo的ASN.1结构:
+DigestInfo::=SEQUENCE{
+digestAlgorithm  AlgorithmIdentifier,
+digest OCTET STRING
+}
+在BC库中的定义结构为:
+package org.bouncycastle.asn1.x509;
+public class DigestInfo extends ASN1Object
+{
+private byte[]                  digest;
+private AlgorithmIdentifier     algId;
+//其余代码省略
+}</code>
+</pre>
+<p>然后再来看看剩下的macSalt及 iterations两个对象。
+macSalt 被定义为ASN.1的OCTET STRING结构，为基本的结构类型。其与iterations一起被包装成PKCS12PBEParam类，参看下面代码:</p>
+<pre>
+<code>public class PKCS12PBEParams extends ASN1Object
+{
+ASN1Integer      iterations;
+ASN1OctetString  iv;
+public PKCS12PBEParams(byte[] salt,int iterations)
+{
+this.iv = new DEROctetString(salt);
+this.iterations = new ASN1Integer(iterations);
+}
+//省略其他代码
+}</code>
+</pre>
+<p>在下面的代码中我们将看到建造者模式在代码的实例应用，正好应对上篇博文中的知识点。</p>
+<pre>
+<code>public interface PKCS12MacCalculatorBuilder
+{
+MacCalculator build(char[] password);
+AlgorithmIdentifier getDigestAlgorithmIdentifier();
+}</code>
+</pre>
+<pre>
+<code>public class BcPKCS12MacCalculatorBuilder implements PKCS12MacCalculatorBuilder
+{
+private ExtendedDigest digest;
+private AlgorithmIdentifier algorithmIdentifier;
+private SecureRandom  random;
+private int  saltLength;
+private int  iterationCount = 1024;
+public BcPKCS12MacCalculatorBuilder()
+{
+this(new SHA1Digest(), new AlgorithmIdentifier(OIWObjectIdentifiers.idSHA1, DERNull.INSTANCE));
+}
+public BcPKCS12MacCalculatorBuilder(ExtendedDigest digest, AlgorithmIdentifier algorithmIdentifier)
+{
+this.digest = digest;
+this.algorithmIdentifier = algorithmIdentifier;
+this.saltLength = digest.getDigestSize();
+}
+//实现接口中的方法getDigestAlgorithmIdentifier
+public AlgorithmIdentifier getDigestAlgorithmIdentifier() 
+{
+return algorithmIdentifier;
+}
+public MacCalculator build(final char[] password) //实现接口中的方法build
+{
+if (random == null)
+{
+random = new SecureRandom();
+}
+byte[] salt = new byte[saltLength];
+random.nextBytes(salt);
+return PKCS12PBEUtils.createMacCalculator(algorithmIdentifier.getAlgorithm(), digest, new PKCS12PBEParams(salt, iterationCount), password);
+}</code>
+</pre>
+<p>及其对应的Provider,实现代码结构如下:</p>
+<pre>
+<code>public interface PKCS12MacCalculatorBuilderProvider
+{
+PKCS12MacCalculatorBuilder get(AlgorithmIdentifier algorithmIdentifier);
+}
+public class BcPKCS12MacCalculatorBuilderProviderBuilder implements PKCS12MacCalculatorBuilderProvider
+{
+private ExtendedDigest digest;
+private AlgorithmIdentifier digestAlgorithmIdentifier;
+public PKCS12MacCalculatorBuilder get(final AlgorithmIdentifier algorithmIdentifier)
+{ //实现接口中的方法
+return new PKCS12MacCalculatorBuilder()
+{
+public MacCalculator build(final char[] password)
+{
+PKCS12PBEParams pbeParams = PKCS12PBEParams.getInstance(algorithmIdentifier.getParameters());
+return PKCS12PBEUtils.createMacCalculator(digestAlgorithmIdentifier.getAlgorithm(), digest, pbeParams, password);
+}
+public AlgorithmIdentifier getDigestAlgorithmIdentifier()
+{
+return digestAlgorithmIdentifier;
+}
+};
+}
+}
+</code>
+</pre>
+<p>由下面代码生成MacData结构:</p>
+<pre>
+<code>class MacDataGenerator
+{
+private PKCS12MacCalculatorBuilder builder; //私有builder属性
+MacDataGenerator(PKCS12MacCalculatorBuilder builder)
+{
+this.builder = builder;
+}
+public MacData build(char[] password, byte[] data) throws PKCSException
+{
+MacCalculator     macCalculator = builder.build(password);
+AlgorithmIdentifier algId = macCalculator.getAlgorithmIdentifier();
+OutputStream out = macCalculator.getOutputStream();
+try
+{
+out.write(data);
+out.close();
+}
+catch (IOException e)
+{
+throw new PKCSException("unable to process data: " + e.getMessage(), e);
+}
+DigestInfo dInfo = new DigestInfo(builder.getDigestAlgorithmIdentifier(), macCalculator.getMac());
+PKCS12PBEParams params = PKCS12PBEParams.getInstance(algId.getParameters());
+return new MacData(dInfo, params.getIV(), params.getIterations().intValue());
+}
+}</code>
+</pre>
+<p>其中要返回关键的MacCalculator的代码都集中由PKCS12PBEUtils.createMacCalculator(digestAlgorithmIdentifier.getAlgorithm(), digest, pbeParams, password)来处理。</p>
+</div>
+  <footer>
+    <p class="meta">
+      <div style="font-size:80%">
+<div>
+<div align="center">希望本站内容对您有点用处,有什么疑问或建议请在后面留言评论</div>
+<div style="text-indent:2em;">若无特别注明，本站内容均属原创,转载请注明作者(<a href="http://hbaojun.eu.org">hbaojun</a>)和出处 <a href="http://hbaojun.eu.org/2013/05/08/PKCS12结构-1/">大宝自习室</a> ，请勿用于任何商业用途。</div>
+<div style="text-indent:2em;">本文链接: <a href="http://hbaojun.eu.org/2013/05/08/PKCS12结构-1/">http://hbaojun.eu.org/2013/05/08/PKCS12结构-1/</a></div>
+</div><span class="byline author vcard">作者 <span class="fn">hbaojun</span></span>      
+
+
+<time datetime="2013-05-08T08:00:00+08:00" pubdate>2013年05月08日</time>
+      
+<span class="categories">属于 <a class="category" href="/category/xin-xi-an-quan/">信息安全</a>
+ 分类</span>
+
+
+<span class="categories">被贴了 <a class="tag" href="/tag/pkcs12/">PKCS12</a>, <a class="tag" href="/tag/xin-xi-an-quan/">信息安全</a>, <a class="tag" href="/tag/java/">Java</a>
+ 标签</span>
+</div>
+    </p>
+<div class="sharing">
+      <div class="bdsharebuttonbox"><a href="#" class="bds_more" data-cmd="more"></a><a title="分享到QQ空间" href="#" class="bds_qzone" data-cmd="qzone"></a><a title="分享到新浪微博" href="#" class="bds_tsina" data-cmd="tsina"></a><a title="分享到腾讯微博" href="#" class="bds_tqq" data-cmd="tqq"></a><a title="分享到人人网" href="#" class="bds_renren" data-cmd="renren"></a><a title="分享到微信" href="#" class="bds_weixin" data-cmd="weixin"></a></div>
+    <script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"16"},"share":{},"image":{"viewList":["qzone","tsina","tqq","renren","weixin"],"viewText":"分享到：","viewSize":"16"}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];</script>
+</div>
+<p>
+  <h2>相关文章</h2>
+  <ul id="related-posts-list">
+      <li class="post">
+        <a href="/2014/02/28/SSL与TLS协议/">SSL与TLS协议</a>
+        <div class="source right"><time datetime="2014-02-28T08:00:00">2014-02-28</time></div>
+      </li>
+      <li class="post">
+        <a href="/2014/03/02/Certificate/">数字证书</a>
+        <div class="source right"><time datetime="2014-03-02T08:00:00">2014-03-02</time></div>
+      </li>
+      <li class="post">
+        <a href="/2014/03/19/polarssl-ssl-cache/">PolarSSL之SSL Cache实现</a>
+        <div class="source right"><time datetime="2014-03-19T12:00:00">2014-03-19</time></div>
+      </li>
+      <li class="post">
+        <a href="/2014/03/16/md-of-polarssl-1/">PolarSSL之杂凑算法(一)</a>
+        <div class="source right"><time datetime="2014-03-16T08:00:00">2014-03-16</time></div>
+      </li>
+      <li class="post">
+        <a href="/2014/03/16/md-of-polarssl-2/">PolarSSL之杂凑算法(二)</a>
+        <div class="source right"><time datetime="2014-03-16T12:00:00">2014-03-16</time></div>
+      </li>
+  </ul>
+</p>    <p class="meta">
+        <a class="basic-alignment left" href="/2013/05/04/设计模式-建造者模式/" title="上一篇: 设计模式-建造者模式">&laquo; 设计模式-建造者模式</a>
+        <a class="basic-alignment right" href="/2014/01/15/JavaCard简介/" title="下一篇: JavaCard 简介">JavaCard 简介 &raquo;</a>
+    </p>
+  </footer>
+</article>
+  <section>
+    <h1>评论</h1>
+    <div id="ds-thread" class="ds-thread" data-thread-key="/2013/05/08/PKCS12结构-1/" data-title="PKCS12结构-1"></div>
+  </section>
+</div>
+<aside class="sidebar">
+
+<section>
+  <h1>分类</h1>
+  <ul id="categories">
+	<li class="category"><a href="/category/xin-xi-an-quan/">信息安全</a><span class="count right">8</span>
+	</li>
+	<li class="category"><a href="/category/linux/">Linux</a><span class="count right">19</span>
+	</li>
+	<li class="category"><a href="/category/xue-xi/">学习</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/gong-zuo/">工作</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/ming-ling-xing/">命令行</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/sheng-huo/">生活</a><span class="count right">6</span>
+	</li>
+	<li class="category"><a href="/category/python/">python</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/c/c/">C/C++</a><span class="count right">4</span>
+	</li>
+	<li class="category"><a href="/category/gui/">GUI</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/tu-xing-jie-mian/">图形界面</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/jekyll/">Jekyll</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/pkcs7/">PKCS#7</a><span class="count right">2</span>
+	</li>
+	<li class="category"><a href="/category/java/">Java</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/javacard/">JavaCard</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/she-ji-mo-shi/">设计模式</a><span class="count right">1</span>
+	</li>
+	<li class="category"><a href="/category/bian-ma/">编码</a><span class="count right">1</span>
+	</li>
+  </ul>
+</section>
+<section>
+  <h1>近期文章</h1>
+  <ul id="recent_posts">
+  
+  
+      <li class="post">
+        <a href="/2015/01/09/2015-1-9-google-chrome-install/">Kali安装google Chrome</a>
+      </li>
+      <li class="post">
+        <a href="/2015/01/09/2015-1-9-Kali-install-pick/">Kali安装小记</a>
+      </li>
+      <li class="post">
+        <a href="/2015/01/08/2015-1-8-xterm-font-pick/">Kali中xterm字体设置</a>
+      </li>
+      <li class="post">
+        <a href="/2014/12/27/learn-bash-program/">Shell学习笔记</a>
+      </li>
+      <li class="post">
+        <a href="/2014/08/07/config-file-of-samba/">Samba配置文件</a>
+      </li>
+  </ul>
+</section>
+<section>
+  <h1>标签</h1>
+  <ul id="tags">
+	<li class="tag"><span><a href="/tag/linux/">Linux</a></span><span class="count">12</span></li>
+	<li class="tag"><span><a href="/tag/xin-xi-an-quan/">信息安全</a></span><span class="count">10</span></li>
+	<li class="tag"><span><a href="/tag/ssl/">SSL</a></span><span class="count">5</span></li>
+	<li class="tag"><span><a href="/tag/tls/">TLS</a></span><span class="count">5</span></li>
+	<li class="tag"><span><a href="/tag/sheng-huo/">生活</a></span><span class="count">4</span></li>
+	<li class="tag"><span><a href="/tag/java/">Java</a></span><span class="count">4</span></li>
+	<li class="tag"><span><a href="/tag/gnu/">GNU</a></span><span class="count">4</span></li>
+	<li class="tag"><span><a href="/tag/kali/">Kali</a></span><span class="count">3</span></li>
+	<li class="tag"><span><a href="/tag/pei-zhi/">配置</a></span><span class="count">3</span></li>
+	<li class="tag"><span><a href="/tag/za-cou-han-shu/">杂凑函数</a></span><span class="count">3</span></li>
+	<li class="tag"><span><a href="/tag/wang-luo-an-quan/">网络安全</a></span><span class="count">3</span></li>
+	<li class="tag"><span><a href="/tag/samba/">Samba</a></span><span class="count">3</span></li>
+	<li class="tag"><span><a href="/tag/xue-jia/">学驾</a></span><span class="count">2</span></li>
+	<li class="tag"><span><a href="/tag/java-card/">Java Card</a></span><span class="count">2</span></li>
+	<li class="tag"><span><a href="/tag/pkcs7/">PKCS#7</a></span><span class="count">2</span></li>
+	<li class="tag"><span><a href="/tag/gong-xiang/">共享</a></span><span class="count">2</span></li>
+	<li class="tag"><span><a href="/tag/shu-zi-xin-feng/">数字信封</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/bian-ma/">编码</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/zi-fu/">字符</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/sheng-cheng-qi-mo-shi/">生成器模式</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/jian-zao-zhe-mo-shi/">建造者模式</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/she-ji-mo-shi/">设计模式</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/cap/">CAP</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/bo-ke/">博客</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/github/">github</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/jekyll/">Jekyll</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/xterm/">XTerm</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/xterm/">xterm</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/google-chrome/">google chrome</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/ru-men/">入门</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/shell/">Shell</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/pydev/">PyDev</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/python/">python</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/eclipse/">eclipse</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/ri-zhi/">日志</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/di-yi-pian-md-ri-zhi/">第一篇md日志</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/md/">md</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/pkcs12/">PKCS12</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/mplayer/">Mplayer</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/kuai-pan/">快盘</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/x.509/">X.509</a></span><span class="count">1</span></li>
+	<li class="tag"><span><a href="/tag/shu-zi-zheng-shu/">数字证书</a></span><span class="count">1</span></li>
+  </ul>
+</section>
+<section>
+<h1>最新评论</h1>
+<!-- 多说最新评论 start -->
+	<div class="ds-recent-comments" data-num-items="5" data-show-avatars="1" data-show-time="1" data-show-title="1" data-show-admin="1" data-excerpt-length="70"></div>
+<!-- 多说最新评论 end -->
+<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"hbaojun"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- 多说公共JS代码 end -->
+</section>
+<section>
+<h1>新浪微博秀</h1>
+<iframe id="sina_widget_1310686285" style="width:100%; height:500px;" frameborder="0" scrolling="no" src="http://v.t.sina.com.cn/widget/widget_blog.php?uid=1310686285&height=500&skin=wd_01&showpic=1"></iframe>
+</section><section>
+<h1>来访者</h1>
+<script type="text/javascript" src="//rj.revolvermaps.com/0/0/6.js?i=9m23haujkxl&amp;m=0&amp;s=220&amp;c=ff0000&amp;cr1=ffffff&amp;f=arial&amp;l=1&amp;hi=10" async="async"></script>
+</section>
+<div id="totop" style="position:fixed;bottom:150px;right:50px;cursor: pointer;">
+<a title='返回顶部'><img src="/images/scrollup.png"/></a>
+</div></aside>
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  版权所有 &copy; 2015 - hbaojun -
+  <span class="credit">Powered by <a href="http://www.opoopress.com/">OpooPress</a>&nbsp;  <script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1,254,411,363'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s19.cnzz.com/z_stat.php%3Fid%3D1,254,411,363%26show%3Dpic' type='text/javascript'%3E%3C/script%3E"));</script>
+</span>
+</p>
+</footer>
+<script type="text/javascript" src="/javascripts/opoopress.min.js"></script>
+<script type="text/javascript" src="/javascripts/totop.js"></script>
+<script language="JavaScript">
+<!--
+    window.OpooPress = new OpooPressApp({siteUrl:'http://hbaojun.eu.org',rootUrl:'',pageUrl:'/2013/05/08/PKCS12结构-1/',title:'PKCS12结构-1',refreshRelativeTimes:true,verbose:false},{});
+    OpooPress.init();
+
+
+var duoshuoQuery = {short_name:"hbaojun"};
+(function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = 'http://static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(ds);
+})();
+//-->
+</script>
+
+<!-- START: Syntax Highlighter ComPress -->
+<script type="text/javascript" src="/plugins/syntax-highlighter/scripts/shCore.js"></script>
+<script type="text/javascript" src="/plugins/syntax-highlighter/scripts/shAutoloader.js"></script>
+<script type="text/javascript">
+    SyntaxHighlighter.autoloader(
+        'applescript			/plugins/syntax-highlighter/scripts/shBrushAppleScript.js',
+        'actionscript3 as3		/plugins/syntax-highlighter/scripts/shBrushAS3.js',
+        'bash shell				/plugins/syntax-highlighter/scripts/shBrushBash.js',
+        'coldfusion cf			/plugins/syntax-highlighter/scripts/shBrushColdFusion.js',
+        'cpp c					/plugins/syntax-highlighter/scripts/shBrushCpp.js',
+        'c# c-sharp csharp		/plugins/syntax-highlighter/scripts/shBrushCSharp.js',
+        'css					/plugins/syntax-highlighter/scripts/shBrushCss.js',
+        'delphi pascal pas		/plugins/syntax-highlighter/scripts/shBrushDelphi.js',
+        'diff patch			    /plugins/syntax-highlighter/scripts/shBrushDiff.js',
+        'erl erlang				/plugins/syntax-highlighter/scripts/shBrushErlang.js',
+        'groovy					/plugins/syntax-highlighter/scripts/shBrushGroovy.js',
+        'java					/plugins/syntax-highlighter/scripts/shBrushJava.js',
+        'jfx javafx				/plugins/syntax-highlighter/scripts/shBrushJavaFX.js',
+        'js jscript javascript	/plugins/syntax-highlighter/scripts/shBrushJScript.js',
+        'perl pl				/plugins/syntax-highlighter/scripts/shBrushPerl.js',
+        'php					/plugins/syntax-highlighter/scripts/shBrushPhp.js',
+        'text plain				/plugins/syntax-highlighter/scripts/shBrushPlain.js',
+        'powershell ps          /plugins/syntax-highlighter/scripts/shBrushPowerShell.js',
+        'py python				/plugins/syntax-highlighter/scripts/shBrushPython.js',
+        'ruby rails ror rb		/plugins/syntax-highlighter/scripts/shBrushRuby.js',
+        'sass scss              /plugins/syntax-highlighter/scripts/shBrushSass.js',
+        'scala					/plugins/syntax-highlighter/scripts/shBrushScala.js',
+        'sql					/plugins/syntax-highlighter/scripts/shBrushSql.js',
+        'vb vbnet				/plugins/syntax-highlighter/scripts/shBrushVb.js',
+        'xml xhtml xslt html	/plugins/syntax-highlighter/scripts/shBrushXml.js'
+    );
+    SyntaxHighlighter.defaults['auto-links'] = false;                 
+    SyntaxHighlighter.defaults['toolbar'] = false;     
+    SyntaxHighlighter.defaults['tab-size'] = 4;
+    SyntaxHighlighter.all();
+</script>
+<!-- END: Syntax Highlighter ComPress -->
+
+<script>
+var _hmt = _hmt || [];
+_js2load.push({src:"//hm.baidu.com/hm.js?509d4839538ac35b343eaa32d5a8f6f1"});
+</script>
+</body>
+</html>
+
