@@ -3,7 +3,7 @@
   <title><![CDATA[大宝自习室]]></title>
   <link href="http://hbaojun.eu.org/atom.xml" rel="self"/>
   <link href="http://hbaojun.eu.org/"/>
-  <updated>2015-03-06T17:10:05+08:00</updated>
+  <updated>2015-04-02T00:11:34+08:00</updated>
   <id>http://hbaojun.eu.org/</id>
   <author>
     <name><![CDATA[hbaojun]]></name>
@@ -11,6 +11,15 @@
   </author>
   <generator uri="http://press.opoo.org/">OpooPress</generator>
 
+  <entry>
+    <title type="html"><![CDATA[这段时间的工作]]></title>
+    <link href="http://hbaojun.eu.org/2015/04/01/2015-4-1-my-choose-job/"/>
+    <updated>2015-04-01T23:34:00+08:00</updated>
+    <id>http://hbaojun.eu.org/2015/04/01/2015-4-1-my-choose-job/</id>
+    <content type="html"><![CDATA[<p>今天已经步入四月份了,时间过的很快,眼看不到3个月就结束了这辈子的求学.
+时间在不知不觉中从指缝中流逝,虽然很感叹,心里还是平静的.回想这半年来找工作的经历,找了很多,错过很多,但选择的工作,只能说自己心底不会后悔吧.</p>
+]]></content>
+  </entry>
   <entry>
     <title type="html"><![CDATA[Kali安装google chrome]]></title>
     <link href="http://hbaojun.eu.org/2015/01/09/2015-1-9-google-chrome-install/"/>
@@ -190,15 +199,6 @@ Samba是在Linux和UNIX系统上实现SMB协议的一个免费软件，</p>
     <updated>2014-03-16T08:00:00+08:00</updated>
     <id>http://hbaojun.eu.org/2014/03/16/analysis-of-polarssl/</id>
     <content type="html"><![CDATA[<p>经过一段时间的学习TLS/SSL标准文档，比对着开源SSL实现库PolarSSL源代码的学习，一下做一些简单的记录。<br  /></p>
-]]></content>
-  </entry>
-  <entry>
-    <title type="html"><![CDATA[PolarSSL之杂凑算法(一)]]></title>
-    <link href="http://hbaojun.eu.org/2014/03/16/md-of-polarssl-1/"/>
-    <updated>2014-03-16T08:00:00+08:00</updated>
-    <id>http://hbaojun.eu.org/2014/03/16/md-of-polarssl-1/</id>
-    <content type="html"><![CDATA[<p>在上面的一篇博客中，我简单总结介绍了一下杂凑函数的基本知识。从这一篇博客开始，需要对PolarSSL中哈希函数的实现来概要分析。
-首先的问题是在PolarSSL库中实现了多少种杂凑函数？从md.h文件中可以看到如下的代码:</p>
 ]]></content>
   </entry>
 </feed>
